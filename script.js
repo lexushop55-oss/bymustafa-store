@@ -600,7 +600,7 @@ const CartUI = (() => {
       `✅ Заказ оформлен!\n\n` +
       `Способ: ${methods[State.payMethod]}\n` +
       `Сумма: ${total.toLocaleString('ru')} ₽\n\n` +
-      `Свяжитесь с нами: @xnoxce`
+      `Свяжитесь с нами: @Mustafa_biohacking`
     );
     document.querySelectorAll('.p-qty').forEach(el => {
       el.classList.remove('show');
