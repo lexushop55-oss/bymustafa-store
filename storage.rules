@@ -1,0 +1,13 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Product images: anyone can read, anyone can write (for admin uploads)
+    // TODO: tighten with Firebase Auth later
+    match /products/{imageFile} {
+      allow read:  if true;
+      allow write: if request.resource.size < 10 * 1024 * 1024  // max 10 MB
+                   && request.resource.contentType.matches('image/.*');
+    }
+  }
+}

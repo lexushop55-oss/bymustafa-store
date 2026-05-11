@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="by MUSTAFA — Premium Shop">
+  <title>by MUSTAFA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ── TOPBAR ── -->
+<header class="topbar">
+  <button class="logo" onclick="App.goHome()" aria-label="На главную">
+    <span class="logo-gem">M</span>
+    <span class="logo-text">by <strong>MUSTAFA</strong></span>
+  </button>
+
+  <div class="search-wrap">
+    <span class="search-icon" aria-hidden="true">⌕</span>
+    <input id="search-input" class="search-input" type="search"
+           placeholder="Поиск…" autocomplete="off"
+           oninput="App.search(this.value)" aria-label="Поиск товаров">
+    <button id="search-clear" class="search-clear" onclick="App.clearSearch()" aria-label="Сбросить поиск">✕</button>
+  </div>
+
+  <div class="topbar-actions">
+    <button id="btn-admin" class="btn-icon hidden" onclick="Admin.toggleOrLogin()" title="Панель администратора">
+      <span class="admin-dot" id="admin-dot"></span>Admin
+    </button>
+    <button id="btn-add" class="btn-add hidden" onclick="Admin.openAdd()">+ Добавить</button>
+    <button class="btn-cart" onclick="CartUI.open()" aria-label="Корзина">
+      🛒 <span id="cart-count" class="cart-count">0</span>
+    </button>
+  </div>
+</header>
+
+<!-- ── LAYOUT ── -->
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar" aria-label="Категории">
+    <p class="sidebar-label">Категории</p>
+    <button class="cat-btn active" data-cat="all" onclick="App.filterCat('all', this)">
+      <span>◈</span> Все товары <span class="cat-count" id="cnt-all">0</span>
+    </button>
+    <button class="cat-btn" data-cat="bady" onclick="App.filterCat('bady', this)">
+      <span>💊</span> БАДы <span class="cat-count" id="cnt-bady">0</span>
+    </button>
+    <button class="cat-btn" data-cat="protein" onclick="App.filterCat('protein', this)">
+      <span>💪</span> Протеин <span class="cat-count" id="cnt-protein">0</span>
+    </button>
+    <button class="cat-btn" data-cat="nootropic" onclick="App.filterCat('nootropic', this)">
+      <span>🧠</span> Ноотропы <span class="cat-count" id="cnt-nootropic">0</span>
+    </button>
+    <button class="cat-btn" data-cat="mushroom" onclick="App.filterCat('mushroom', this)">
+      <span>🍄</span> Грибы <span class="cat-count" id="cnt-mushroom">0</span>
+    </button>
+    <hr class="sidebar-hr">
+    <button class="cat-btn" data-cat="vitamin" onclick="App.filterCat('vitamin', this)">
+      <span>🛡</span> Витамины <span class="cat-count" id="cnt-vitamin">0</span>
+    </button>
+    <button class="cat-btn" data-cat="amino" onclick="App.filterCat('amino', this)">
+      <span>⚡</span> Аминокислоты <span class="cat-count" id="cnt-amino">0</span>
+    </button>
+    <button class="cat-btn" data-cat="fat" onclick="App.filterCat('fat', this)">
+      <span>🔥</span> Жиросжигатели <span class="cat-count" id="cnt-fat">0</span>
+    </button>
+    <hr class="sidebar-hr">
+    <button class="cat-btn" data-cat="clothes" onclick="App.filterCat('clothes', this)">
+      <span>👕</span> Одежда <span class="cat-count" id="cnt-clothes">0</span>
+    </button>
+    <button class="cat-btn" data-cat="other" onclick="App.filterCat('other', this)">
+      <span>📦</span> Прочее <span class="cat-count" id="cnt-other">0</span>
+    </button>
+  </nav>
+
+  <!-- Main -->
+  <main class="main" id="main">
+    <!-- Admin stats bar -->
+    <div class="stats-bar hidden" id="stats-bar">
+      <div class="stat-card"><div class="stat-val" id="st-total">0</div><div class="stat-lbl">Товаров</div></div>
+      <div class="stat-card"><div class="stat-val" id="st-avail">0</div><div class="stat-lbl">В наличии</div></div>
+      <div class="stat-card"><div class="stat-val" id="st-sold">0</div><div class="stat-lbl">Нет в наличии</div></div>
+      <div class="stat-card">
+        <div class="stat-val" id="st-storage">0 KB</div>
+        <div class="stat-lbl">localStorage</div>
+        <button class="btn-clear-cache" onclick="Store.clearAll()">Очистить</button>
+      </div>
+    </div>
+
+    <!-- Page header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title" id="page-title">Все товары</h1>
+        <p class="page-sub" id="page-sub"></p>
+      </div>
+      <select class="sort-select" onchange="App.setSort(this.value)" aria-label="Сортировка">
+        <option value="">По умолчанию</option>
+        <option value="price-asc">Цена ↑</option>
+        <option value="price-desc">Цена ↓</option>
+        <option value="name">По названию</option>
+        <option value="avail">В наличии</option>
+        <option value="new">Новые</option>
+      </select>
+    </div>
+
+    <!-- Product grid -->
+    <div class="grid" id="grid" role="list"></div>
+  </main>
+</div>
+
+<!-- ── PRODUCT MODAL ── -->
+<div class="overlay" id="overlay-product" onclick="ProductModal.closeOuter(event)" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-img-wrap">
+      <div class="modal-img-ph" id="modal-img-ph">💊</div>
+      <img id="modal-img" src="" alt="" loading="lazy" style="display:none">
+      <span class="modal-disc-tag" id="modal-disc" style="display:none"></span>
+      <button class="modal-close" onclick="ProductModal.close()" aria-label="Закрыть">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-cat" id="modal-cat"></p>
+      <h2 class="modal-name" id="modal-name"></h2>
+      <div class="modal-price-row">
+        <span class="modal-price" id="modal-price"></span>
+        <span class="modal-oldp hidden" id="modal-oldp"></span>
+        <span class="modal-pct hidden" id="modal-pct"></span>
+      </div>
+      <div class="modal-stock" id="modal-stock"><span class="stock-dot"></span><span id="modal-stock-txt"></span></div>
+      <hr class="modal-hr">
+      <p class="modal-desc-lbl">Описание</p>
+      <p class="modal-desc" id="modal-desc"></p>
+      <div class="modal-actions">
+        <button class="btn-modal-edit hidden" id="modal-edit-btn" onclick="ProductModal.edit()">✏ Изменить</button>
+        <button class="btn-modal-add" id="modal-add-btn" onclick="ProductModal.add()">+ В корзину</button>
+      </div>
+      <a class="modal-tg" href="https://t.me/xnoxce" target="_blank" rel="noopener">
+        <span>✈️</span>
+        <div><strong>Задать вопрос</strong><small>@xnoxce — ответим быстро</small></div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADMIN LOGIN ── -->
+<div class="overlay" id="overlay-login" onclick="Admin.closeLoginOuter(event)" role="dialog" aria-modal="true">
+  <div class="login-box">
+    <div class="login-gem">M</div>
+    <h2 class="login-title">Вход для администратора</h2>
+    <p class="login-sub">Введи пароль для управления магазином</p>
+    <label class="flabel" for="login-pw">Пароль</label>
+    <input id="login-pw" class="finput" type="password" placeholder="••••••••"
+           autocomplete="current-password" onkeydown="if(event.key==='Enter')Admin.login()">
+    <p class="login-err hidden" id="login-err">Неверный пароль</p>
+    <button class="btn-login" onclick="Admin.login()">Войти →</button>
+    <button class="btn-login-cancel" onclick="Admin.closeLogin()">Отмена</button>
+  </div>
+</div>
+
+<!-- ── PRODUCT FORM ── -->
+<div class="overlay" id="overlay-form" onclick="Admin.closeFormOuter(event)" role="dialog" aria-modal="true">
+  <div class="form-box">
+    <button class="form-close" onclick="Admin.closeForm()" aria-label="Закрыть">✕</button>
+    <h2 class="form-title" id="form-title">Новый товар</h2>
+    <p class="form-sub" id="form-sub">Заполни информацию о товаре</p>
+
+    <div class="form-grid">
+      <div class="fg full">
+        <label class="flabel" for="f-name">Название *</label>
+        <input class="finput" id="f-name" type="text" placeholder="Например: Магний бисглицинат" maxlength="120">
+      </div>
+      <div class="fg">
+        <label class="flabel" for="f-price">Цена ₽ *</label>
+        <input class="finput" id="f-price" type="number" placeholder="1200" min="1">
+      </div>
+      <div class="fg">
+        <label class="flabel" for="f-oldp">Старая цена ₽</label>
+        <input class="finput" id="f-oldp" type="number" placeholder="2500" min="1">
+      </div>
+      <div class="fg">
+        <label class="flabel" for="f-cat">Категория</label>
+        <select class="finput" id="f-cat">
+          <option value="bady">💊 БАДы</option>
+          <option value="protein">💪 Протеин</option>
+          <option value="nootropic">🧠 Ноотропы</option>
+          <option value="mushroom">🍄 Грибы</option>
+          <option value="vitamin">🛡 Витамины</option>
+          <option value="amino">⚡ Аминокислоты</option>
+          <option value="fat">🔥 Жиросжигатели</option>
+          <option value="clothes">👕 Одежда</option>
+          <option value="other">📦 Прочее</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="flabel" for="f-stock">Остаток (шт.)</label>
+        <input class="finput" id="f-stock" type="number" placeholder="100" min="0">
+      </div>
+      <div class="fg full">
+        <label class="flabel" for="f-desc">Описание</label>
+        <textarea class="finput ftextarea" id="f-desc" placeholder="Состав, эффект, дозировка…" maxlength="1000"></textarea>
+      </div>
+      <div class="fg full">
+        <label class="flabel">Фото товара</label>
+        <div class="upload-zone" id="upload-zone">
+          <input type="file" id="f-file" accept="image/*" onchange="Admin.handleFile(event)">
+          <div class="upload-inner" id="upload-inner">
+            <span class="upload-icon">📷</span>
+            <p>Нажми или перетащи фото<br><small>JPG · PNG · WEBP · макс. 8 MB</small></p>
+          </div>
+          <img id="img-preview" class="img-preview" src="" alt="">
+        </div>
+      </div>
+      <div class="fg full">
+        <label class="chk-label">
+          <input type="checkbox" id="f-instock" checked> Товар в наличии
+        </label>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-del hidden" id="btn-del" onclick="Admin.deleteProduct()">🗑 Удалить</button>
+      <button class="btn-cancel" onclick="Admin.closeForm()">Отмена</button>
+      <button class="btn-save" onclick="Admin.save()">💾 Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CART PANEL ── -->
+<div class="overlay" id="overlay-cart" onclick="CartUI.closeOuter(event)" role="dialog" aria-modal="true" aria-label="Корзина">
+  <div class="cart-panel">
+    <div class="cart-header">
+      <h2 class="cart-title">Корзина</h2>
+      <button class="cart-close" onclick="CartUI.close()" aria-label="Закрыть корзину">✕</button>
+    </div>
+    <div class="cart-items" id="cart-items"></div>
+    <div class="cart-footer hidden" id="cart-footer">
+      <div class="cart-total-row">
+        <span class="cart-total-lbl">Итого</span>
+        <span class="cart-total-val" id="cart-total">0 ₽</span>
+      </div>
+      <p class="pay-label">Способ оплаты</p>
+      <div class="pay-opts">
+        <button class="pay-opt" onclick="CartUI.selectPay('sbp', this)"><span>📱</span>СБП</button>
+        <button class="pay-opt" onclick="CartUI.selectPay('sber', this)"><span>💚</span>SberPay</button>
+        <button class="pay-opt" onclick="CartUI.selectPay('visa', this)"><span>💳</span>Visa</button>
+      </div>
+      <button class="btn-checkout" onclick="CartUI.checkout()">Оформить заказ →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOASTS ── -->
+<div class="toast-wrap" id="toast-wrap" aria-live="polite"></div>
+
+<!-- ── ADMIN BADGE — скрыт, активируется по секретной комбинации ── -->
+<button class="admin-badge hidden" id="admin-badge" onclick="Admin.toggleOrLogin()">
+  <span class="adm-dot" id="adm-dot"></span>
+  <span id="adm-badge-txt">Admin: ВЫКЛ</span>
+</button>
+
+<script type="module" src="script.js"></script>
+</body>
+</html>

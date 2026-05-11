@@ -1,0 +1,15 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // products collection:
+    // - Everyone can READ (public catalog)
+    // - Only authenticated admins can WRITE
+    // Since this app uses a client-side password (no Firebase Auth),
+    // we allow all writes for now — tighten later with Firebase Auth.
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if true;  // TODO: lock down with Firebase Auth
+    }
+  }
+}
