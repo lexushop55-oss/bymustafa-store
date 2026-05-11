@@ -210,29 +210,35 @@ const FirestoreDB = (() => {
    StorageUpload — image upload to Firebase Storage
 ============================================================ */
 const StorageUpload = (() => {
-
-  /* Upload a File/Blob to Firebase Storage, returns download URL */
   async function uploadImage(productId, blob) {
-    const ext      = blob.type.split('/')[1] || 'jpg';
-    const imgRef   = ref(storage, `products/${productId}.${ext}`);
-    const snapshot = await uploadBytes(imgRef, blob);
-    const url      = await getDownloadURL(snapshot.ref);
-    return url;
+
+    const formData = new FormData();
+    formData.append('file', blob);
+
+    formData.append('upload_preset', 'bymustafa');
+
+    const response = await fetch(
+      'https://api.cloudinary.com/v1_1/deqx8dgre/image/upload',
+      {
+        method: 'POST',
+        body: formData
+      }
+    );
+
+    const data = await response.json();
+
+    return data.secure_url;
   }
 
-  /* Delete image from Firebase Storage */
   async function deleteImage(productId) {
-    // Try both common extensions
-    for (const ext of ['jpg', 'jpeg', 'png', 'webp', 'gif']) {
-      try {
-        const imgRef = ref(storage, `products/${productId}.${ext}`);
-        await deleteObject(imgRef);
-        return; // deleted, stop
-      } catch { /* not this extension, try next */ }
-    }
+    return true;
   }
 
-  return { uploadImage, deleteImage };
+  return {
+    uploadImage,
+    deleteImage
+  };
+
 })();
 
 /* ============================================================
