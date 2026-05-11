@@ -12,7 +12,6 @@ import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc }
                                 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject }
                                 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-
 /* ── Firebase config ── */
 const firebaseConfig = {
   apiKey:            "AIzaSyC-LJMbKoQiavfBm6mS_ys1MVn9hK0YX4k",
@@ -263,7 +262,7 @@ const State = (() => {
 // Пароль хранится как SHA-256 хеш — в коде нет открытого пароля
 // Текущий пароль: mustafa2024 → чтобы сменить, запусти в консоли:
 // hashPassword('новый_пароль').then(h => console.log(h))
-const ADMIN_PASS_HASH = '7c244a41e862d3efbbb1e8ea12fc1b9f3f14f5ca1cb1bec1fa00f3a5cdc8438e';
+const ADMIN_PASS_HASH = '3ca6f942ed4c734863c3f7b0dba0f0dd7bf4fe8ca562fd5afcecfaffab8d73ec';
 
 async function hashPassword(pw) {
   const enc = new TextEncoder().encode(pw);
