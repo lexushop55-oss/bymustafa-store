@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="by MUSTAFA — Premium Shop">
-  <title>by MUSTAFA</title>
+  <meta name="description" content="by MUSTAFA — Premium Biohacking Store">
+  <title>by MUSTAFA — BIOHACKING STORE</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -21,7 +21,7 @@
   <div class="search-wrap">
     <span class="search-icon" aria-hidden="true">⌕</span>
     <input id="search-input" class="search-input" type="search"
-           placeholder="Поиск…" autocomplete="off"
+           placeholder="Поиск товаров…" autocomplete="off"
            oninput="App.search(this.value)" aria-label="Поиск товаров">
     <button id="search-clear" class="search-clear" onclick="App.clearSearch()" aria-label="Сбросить поиск">✕</button>
   </div>
@@ -43,6 +43,7 @@
   <!-- Sidebar -->
   <nav class="sidebar" id="sidebar" aria-label="Категории">
     <p class="sidebar-label">Категории</p>
+
     <button class="cat-btn active" data-cat="all" onclick="App.filterCat('all', this)">
       <span>◈</span> Все товары <span class="cat-count" id="cnt-all">0</span>
     </button>
@@ -58,7 +59,9 @@
     <button class="cat-btn" data-cat="mushroom" onclick="App.filterCat('mushroom', this)">
       <span>🍄</span> Грибы <span class="cat-count" id="cnt-mushroom">0</span>
     </button>
+
     <hr class="sidebar-hr">
+
     <button class="cat-btn" data-cat="vitamin" onclick="App.filterCat('vitamin', this)">
       <span>🛡</span> Витамины <span class="cat-count" id="cnt-vitamin">0</span>
     </button>
@@ -68,72 +71,98 @@
     <button class="cat-btn" data-cat="fat" onclick="App.filterCat('fat', this)">
       <span>🔥</span> Жиросжигатели <span class="cat-count" id="cnt-fat">0</span>
     </button>
+
     <hr class="sidebar-hr">
+
     <button class="cat-btn" data-cat="clothes" onclick="App.filterCat('clothes', this)">
       <span>👕</span> Одежда <span class="cat-count" id="cnt-clothes">0</span>
     </button>
     <button class="cat-btn" data-cat="other" onclick="App.filterCat('other', this)">
       <span>📦</span> Прочее <span class="cat-count" id="cnt-other">0</span>
     </button>
+
+    <!-- Quality badge -->
+    <div class="sidebar-quality">
+      <div class="sidebar-quality-label">Premium Quality</div>
+      <div class="sidebar-quality-pct">100%</div>
+      <div class="sidebar-quality-desc">Сертифицированные продукты высшего качества и максимальной эффективности</div>
+      <div class="sidebar-quality-badge">🛡 Гарантия качества</div>
+    </div>
   </nav>
 
   <!-- Main -->
   <main class="main" id="main">
-<section class="hero">
 
-  <div class="hero-bg"></div>
+    <!-- ── HERO ── -->
+    <section class="hero">
 
-  <div class="hero-content">
+      <!-- Grid overlay handled by CSS ::before -->
 
-    <div class="hero-left">
+      <div class="hero-content">
+        <div class="hero-left">
 
-      <span class="hero-label">
-        PREMIUM SUPPLEMENTS
-      </span>
+          <span class="hero-label">PREMIUM SUPPLEMENTS</span>
 
-      <h1 class="hero-title">
-        BY MUSTAFA
-      </h1>
+          <h1 class="hero-title">BY MUSTAFA</h1>
+          <h2 class="hero-subtitle">BIOHACKING STORE</h2>
 
-      <h2 class="hero-subtitle">
-        BIOHACKING STORE
-      </h2>
+          <p class="hero-text">
+            Премиальные добавки для энергии, фокуса,<br>
+            восстановления и максимальной эффективности.
+          </p>
 
-      <p class="hero-text">
-        Премиальные БАДы для энергии,
-        фокуса и восстановления.
-      </p>
+          <div class="hero-actions">
+            <a href="#products" class="hero-btn hero-btn-main">
+              ⚡ Смотреть каталог
+            </a>
+            <a href="https://t.me/Mustafa_biohacking" target="_blank" rel="noopener" class="hero-btn hero-btn-outline">
+              ✈ Telegram
+            </a>
+          </div>
 
-      <div class="hero-actions">
+        </div>
 
-        <a href="#products"
-           class="hero-btn hero-btn-main">
-          Смотреть каталог
-        </a>
-
-        <a href="https://t.me/Mustafa_biohacking"
-           target="_blank"
-           class="hero-btn hero-btn-outline">
-          Telegram
-        </a>
-
+        <div class="hero-right">
+          <div class="hero-rating">
+            <div class="hero-rating-stars">★★★★★</div>
+            <div class="hero-rating-label">Рейтинг</div>
+          </div>
+          <img
+            src="https://i.imgur.com/UYiroys.jpeg"
+            alt="BY MUSTAFA Premium Supplements"
+            class="hero-image"
+          >
+        </div>
       </div>
 
-    </div>
+      <!-- Feature strip -->
+      <div class="hero-features">
+        <div class="hero-feat">
+          <div class="hero-feat-icon">⚡</div>
+          <div>
+            <div class="hero-feat-title">Энергия</div>
+            <div class="hero-feat-desc">Больше сил каждый день</div>
+          </div>
+        </div>
+        <div class="hero-feat">
+          <div class="hero-feat-icon">🧠</div>
+          <div>
+            <div class="hero-feat-title">Фокус</div>
+            <div class="hero-feat-desc">Ясность. Концентрация. Результат</div>
+          </div>
+        </div>
+        <div class="hero-feat">
+          <div class="hero-feat-icon">🛡</div>
+          <div>
+            <div class="hero-feat-title">Восстановление</div>
+            <div class="hero-feat-desc">Быстрее. Сильнее. Лучше</div>
+          </div>
+        </div>
+      </div>
 
-    <div class="hero-right">
+    </section>
 
-      <img
-        src="https://i.imgur.com/UYiroys.jpeg"
-        alt="product"
-        class="hero-image"
-      >
-
-    </div>
-
-  </div>
-
-</section>    <!-- Admin stats bar -->
+    <!-- Admin stats bar -->
     <div class="stats-bar hidden" id="stats-bar">
       <div class="stat-card"><div class="stat-val" id="st-total">0</div><div class="stat-lbl">Товаров</div></div>
       <div class="stat-card"><div class="stat-val" id="st-avail">0</div><div class="stat-lbl">В наличии</div></div>
@@ -146,13 +175,13 @@
     </div>
 
     <!-- Page header -->
-    <div class="page-header">
+    <div class="page-header" id="products">
       <div>
-        <h1 class="page-title" id="page-title">Все товары</h1>
+        <h1 class="page-title" id="page-title">Каталог товаров</h1>
         <p class="page-sub" id="page-sub"></p>
       </div>
       <select class="sort-select" onchange="App.setSort(this.value)" aria-label="Сортировка">
-        <option value="">По умолчанию</option>
+        <option value="">По популярности</option>
         <option value="price-asc">Цена ↑</option>
         <option value="price-desc">Цена ↓</option>
         <option value="name">По названию</option>
@@ -163,6 +192,40 @@
 
     <!-- Product grid -->
     <div class="grid" id="grid" role="list"></div>
+
+    <!-- Footer strip -->
+    <div class="footer-strip">
+      <div class="footer-item">
+        <div class="footer-item-icon">🛡</div>
+        <div>
+          <div class="footer-item-title">100% Оригинал</div>
+          <div class="footer-item-desc">Только оригинальная продукция</div>
+        </div>
+      </div>
+      <div class="footer-item">
+        <div class="footer-item-icon">🚚</div>
+        <div>
+          <div class="footer-item-title">Быстрая доставка</div>
+          <div class="footer-item-desc">По всей России и СНГ</div>
+        </div>
+      </div>
+      <div class="footer-item">
+        <div class="footer-item-icon">💳</div>
+        <div>
+          <div class="footer-item-title">Безопасная оплата</div>
+          <div class="footer-item-desc">Надёжная онлайн оплата</div>
+        </div>
+      </div>
+      <div class="footer-item">
+        <div class="footer-item-icon">✈️</div>
+        <div>
+          <div class="footer-item-title">Поддержка 24/7</div>
+          <div class="footer-item-desc">Мы всегда на связи</div>
+          <a href="https://t.me/Mustafa_biohacking" target="_blank" class="footer-tg-btn">Telegram →</a>
+        </div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -309,7 +372,7 @@
 <!-- ── TOASTS ── -->
 <div class="toast-wrap" id="toast-wrap" aria-live="polite"></div>
 
-<!-- ── ADMIN BADGE — скрыт, активируется по секретной комбинации ── -->
+<!-- ── ADMIN BADGE ── -->
 <button class="admin-badge hidden" id="admin-badge" onclick="Admin.toggleOrLogin()">
   <span class="adm-dot" id="adm-dot"></span>
   <span id="adm-badge-txt">Admin: ВЫКЛ</span>
