@@ -12,16 +12,8 @@ import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc }
                                 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject }
                                 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-/* ── Firebase config ── */
-const firebaseConfig = {
-  apiKey:            "AIzaSyC-LJMbKoQiavfBm6mS_ys1MVn9hK0YX4k",
-  authDomain:        "bymustafa-store.firebaseapp.com",
-  projectId:         "bymustafa-store",
-  storageBucket:     "bymustafa-store.firebasestorage.app",
-  messagingSenderId: "1073719464966",
-  appId:             "1:1073719464966:web:411471b1f0a76d0a9f9f87",
-  measurementId:     "G-8N5X6EVGZC",
-};
+/* ── Firebase config (loaded from config.js → window.ENV) ── */
+const firebaseConfig = window.ENV;
 
 const app     = initializeApp(firebaseConfig);
 const db      = getFirestore(app);

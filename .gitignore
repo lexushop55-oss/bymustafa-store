@@ -65,5 +65,8 @@ node_modules/
 # dotenv environment variables file
 .env
 
+# Local config with sensitive Firebase keys (never commit!)
+config.js
+
 # dataconnect generated files
 .dataconnect
