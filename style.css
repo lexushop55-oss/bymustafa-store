@@ -517,6 +517,7 @@ input, select, textarea { font: inherit; }
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 100%;
 }
 /* Left edge fade — clean separation from text column */
 .hero-right::before {
@@ -547,8 +548,9 @@ input, select, textarea { font: inherit; }
   z-index: 0;
 }
 .hero-product-img {
-  width: 100%;
-  height: auto;
+  width: auto;
+  height: 80%;
+  max-width: none;
   object-fit: contain;
   position: relative;
   z-index: 1;
@@ -1775,7 +1777,7 @@ input, select, textarea { font: inherit; }
   .hero-content { grid-template-columns: 1fr; }
   .hero-left { padding: 100px 24px 40px; max-width: 100%; }
   .hero-right { height: 50vh; }
-  .hero-product-img { max-height: 45vh; max-width: 280px; }
+  .hero-product-img { height: 90%; width: auto; max-width: none; }
   .hero-title { font-size: clamp(40px, 10vw, 60px); }
   .hero-ctas { flex-direction: column; align-items: flex-start; }
   .cats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
