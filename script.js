@@ -12,8 +12,16 @@ import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc }
                                 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject }
                                 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-/* ── Firebase config (loaded from config.js → window.ENV) ── */
-const firebaseConfig = window.ENV;
+/* ── Firebase config ── */
+const firebaseConfig = {
+  apiKey:            "AIzaSyC-LJMbKoQiavfBm6mS_ys1MVn9hK0YX4k",
+  authDomain:        "bymustafa-store.firebaseapp.com",
+  projectId:         "bymustafa-store",
+  storageBucket:     "bymustafa-store.firebasestorage.app",
+  messagingSenderId: "1073719464966",
+  appId:             "1:1073719464966:web:411471b1f0a76d0a9f9f87",
+  measurementId:     "G-8N5X6EVGZC",
+};
 
 const app     = initializeApp(firebaseConfig);
 const db      = getFirestore(app);
@@ -241,7 +249,6 @@ const State = (() => {
     products:    [],           // loaded from Firestore
     cart:        Store.loadCart(),
     adminMode:   false,
-    bestSellersMode: true,    // homepage shows only 6 best sellers, no filter bar
     editingId:   null,         // Firestore doc id string or null
     modalId:     null,
     curCat:      'all',
@@ -346,9 +353,6 @@ function getFiltered() {
     case 'avail':      list.sort((a, b) => (b.inStock ? 1 : 0) - (a.inStock ? 1 : 0));   break;
     case 'new':        list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));      break;
   }
-  if (State.bestSellersMode && State.curCat === 'all' && !State.searchQ) {
-    list = list.slice(0, 6);
-  }
   return list;
 }
 
@@ -423,18 +427,18 @@ const UI = (() => {
     const imgSrc  = p.imageUrl || '';
     const { cls, txt } = stockInfo(p);
 
-    return `<div class="p-card" role="listitem" data-product-id="${esc(p.id)}"
-              style="animation-delay:${Math.min(idx * 40, 400)}ms;cursor:pointer">
+    return `<div class="p-card" role="listitem" onclick="ProductModal.open('${esc(p.id)}')"
+              style="animation-delay:${Math.min(idx * 30, 400)}ms">
       <div class="p-img">
         ${imgSrc
           ? `<img src="${esc(imgSrc)}" alt="${esc(p.name)}" loading="lazy">`
           : `<div class="p-img-ph" aria-hidden="true"></div>`}
         ${disc ? `<div class="p-disc">-${disc}%</div>` : ''}
-        ${!buyable ? `<div class="p-sold">OUT OF STOCK</div>` : ''}
+        ${!buyable ? `<div class="p-sold">НЕТ В НАЛИЧИИ</div>` : ''}
       </div>
 
       <div class="p-admin-bar">
-        <button class="p-btn-edit" onclick="event.stopPropagation();Admin.openEdit('${esc(p.id)}')">✏ Edit</button>
+        <button class="p-btn-edit" onclick="event.stopPropagation();Admin.openEdit('${esc(p.id)}')">✏ Изменить</button>
         <button class="p-btn-del"  onclick="event.stopPropagation();Admin.quickDel('${esc(p.id)}')">🗑</button>
       </div>
 
@@ -449,12 +453,12 @@ const UI = (() => {
           <button class="p-add-btn${buyable ? '' : ' sold'}${qty > 0 ? ' hide' : ''}"
             onclick="event.stopPropagation();${buyable ? `Cart.add('${esc(p.id)}')` : ''}"
             ${!buyable ? 'disabled' : ''}>
-            ${buyable ? '+ ADD TO CART' : 'Out of Stock'}
+            ${buyable ? '+ Добавить' : 'Нет в наличии'}
           </button>
           <div class="p-qty${qty > 0 ? ' show' : ''}" id="pqty-${p.id}">
-            <button class="q-btn minus" onclick="event.stopPropagation();Cart.dec('${esc(p.id)}')" aria-label="Decrease">−</button>
+            <button class="q-btn minus" onclick="event.stopPropagation();Cart.dec('${esc(p.id)}')" aria-label="Убрать">−</button>
             <div class="q-val" id="pqv-${p.id}">${qty}</div>
-            <button class="q-btn plus"  onclick="event.stopPropagation();Cart.add('${esc(p.id)}')" aria-label="Increase">+</button>
+            <button class="q-btn plus"  onclick="event.stopPropagation();Cart.add('${esc(p.id)}')" aria-label="Добавить">+</button>
           </div>
         </div>
       </div>
@@ -466,25 +470,10 @@ const UI = (() => {
     const grid = document.getElementById('grid');
     if (!grid) return;
 
-    const isBestSellers = State.bestSellersMode && State.curCat === 'all' && !State.searchQ;
-
-    // Show/hide filter bar — only in full catalog mode
-    const filterBar = document.querySelector('.cat-filter-bar');
-    if (filterBar) filterBar.style.display = isBestSellers ? 'none' : '';
-
-    // Show "View All" only in best sellers mode; hide in full catalog
-    const seeAll = document.querySelector('.see-all');
-    if (seeAll) seeAll.style.display = isBestSellers ? '' : 'none';
-
     const name  = CAT_NAMES[State.curCat] || 'Каталог';
     const count = list.length;
-    if (isBestSellers) {
-      setEl('page-title', 'BEST SELLERS');
-      setEl('page-sub', '');
-    } else {
-      setEl('page-title', name);
-      setEl('page-sub', `${count} ${plural(count, 'товар', 'товара', 'товаров')}${State.searchQ ? ` · «${State.searchQ}»` : ''}`);
-    }
+    setEl('page-title', name);
+    setEl('page-sub',   `${count} ${plural(count, 'товар', 'товара', 'товаров')}${State.searchQ ? ` · «${State.searchQ}»` : ''}`);
 
     if (!count) {
       grid.innerHTML = renderEmpty();
@@ -673,14 +662,10 @@ const CartUI = (() => {
 ============================================================ */
 const ProductModal = (() => {
 
-  let _qty = 1;
-
   function open(id) {
     const p = State.products.find(x => x.id === id);
     if (!p) return;
     State.modalId = id;
-    _qty = 1;
-    setEl('modal-qty-val', _qty);
 
     // Image (Firebase Storage URL)
     const imgSrc = p.imageUrl || '';
@@ -759,33 +744,6 @@ const ProductModal = (() => {
     if (e.target === document.getElementById('overlay-product')) close();
   }
 
-  function inc() {
-    _qty = Math.min(_qty + 1, 99);
-    setEl('modal-qty-val', _qty);
-  }
-
-  function dec() {
-    _qty = Math.max(_qty - 1, 1);
-    setEl('modal-qty-val', _qty);
-  }
-
-  function addFromModal() {
-    if (!State.modalId) return;
-    const p = State.products.find(x => x.id === State.modalId);
-    if (!p || !canBuy(p)) return;
-    const existing = State.cart.find(x => x.id === State.modalId);
-    if (existing) {
-      existing.qty += _qty;
-    } else {
-      State.cart.push({ id: p.id, name: p.name, price: p.price, qty: _qty });
-    }
-    Store.saveCart(State.cart);
-    CartUI.updateCount();
-    Toast.show(`Добавлено в корзину: ${_qty} шт.`, 'success');
-    UI.syncCard(State.modalId);
-    close();
-  }
-
   function add() {
     if (State.modalId) { Cart.add(State.modalId); close(); }
   }
@@ -796,7 +754,7 @@ const ProductModal = (() => {
     Admin.openEdit(id);
   }
 
-  return { open, close, closeOuter, add, inc, dec, addFromModal, edit };
+  return { open, close, closeOuter, add, edit };
 })();
 
 /* ============================================================
@@ -808,16 +766,16 @@ const Admin = (() => {
   function toggleOrLogin() {
     if (State.adminMode) { disable(); return; }
     openOverlay('overlay-login');
-    const pw = document.getElementById('admin-pass') || document.getElementById('login-pw');
+    const pw = document.getElementById('login-pw');
     if (pw) { pw.value = ''; pw.focus(); }
     const err = document.getElementById('login-err');
     if (err) err.classList.add('hidden');
   }
 
   async function login() {
-    const pw    = (document.getElementById('admin-pass') || document.getElementById('login-pw') || {}).value || '';
+    const pw    = (document.getElementById('login-pw') || {}).value || '';
     const errEl = document.getElementById('login-err');
-    const inp   = document.getElementById('admin-pass') || document.getElementById('login-pw');
+    const inp   = document.getElementById('login-pw');
     const hash  = await hashPassword(pw);
     if (hash === ADMIN_PASS_HASH) {
       closeOverlay('overlay-login');
@@ -1087,7 +1045,6 @@ const App = (() => {
 
   function filterCat(cat, el) {
     State.curCat = cat;
-    State.bestSellersMode = false;
     document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
     if (el) {
       el.classList.add('active');
@@ -1096,14 +1053,6 @@ const App = (() => {
       if (btn) btn.classList.add('active');
     }
     UI.render();
-  }
-
-  function filterCatAndScroll(cat, el) {
-    filterCat(cat, el);
-    setTimeout(() => {
-      const catalog = document.getElementById('catalog');
-      if (catalog) catalog.scrollIntoView({ behavior: 'smooth' });
-    }, 50);
   }
 
   function search(val) {
@@ -1128,12 +1077,11 @@ const App = (() => {
   }
 
   function goHome() {
-    State.bestSellersMode = true;
-    State.curCat = 'all';
+    filterCat('all', document.querySelector('[data-cat="all"]'));
     clearSearch();
   }
 
-  return { filterCat, filterCatAndScroll, search, clearSearch, setSort, goHome };
+  return { filterCat, search, clearSearch, setSort, goHome };
 })();
 
 /* ============================================================
@@ -1173,13 +1121,6 @@ document.addEventListener('keydown', e => {
     const inp = document.getElementById('search-input');
     if (inp) inp.focus();
   }
-});
-
-/* ── Product card click — event delegation (robust, no inline onclick) ── */
-document.addEventListener('click', function(e) {
-  if (e.target.closest('button, a, select, input, label')) return;
-  const card = e.target.closest('[data-product-id]');
-  if (card) ProductModal.open(card.dataset.productId);
 });
 
 /* ============================================================
@@ -1645,66 +1586,50 @@ const BioQuiz = (() => {
 
   /* ── Open / Close ── */
   function open() {
-    const ov = overlay();
-    if (!ov) {
-      // fallback: scroll to catalog if overlay not found
-      const el = document.getElementById('catalog');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-      return;
-    }
     currentStep = 0;
     answers     = {};
-    ov.classList.add('open');
+    overlay().classList.add('open');
     document.body.style.overflow = 'hidden';
     showQuestion();
     spawnParticles();
   }
 
   function close() {
-    const ov = overlay();
-    if (!ov) return;
-    ov.classList.remove('open');
+    overlay().classList.remove('open');
     document.body.style.overflow = '';
   }
 
   function closeOuter(e) {
-    const ov = overlay();
-    if (ov && e.target === ov) close();
+    if (e.target === overlay()) close();
   }
 
   /* ── Progress ── */
   function updateProgress(step, total) {
-    const pf = progressFill(), sl = stepLabel();
-    if (!pf) return;
     const pct = Math.round((step / total) * 100);
-    pf.style.width = pct + '%';
+    progressFill().style.width = pct + '%';
     const padded = String(step + 1).padStart(2, '0');
     const tot    = String(total).padStart(2, '0');
-    if (sl) sl.textContent = `ИНИЦИАЛИЗАЦИЯ · МОДУЛЬ ${padded}/${tot}`;
+    stepLabel().textContent = `ИНИЦИАЛИЗАЦИЯ · МОДУЛЬ ${padded}/${tot}`;
   }
 
   /* ── Render question ── */
   function showQuestion() {
-    if (!overlay()) return;
     const q = QUESTIONS[currentStep];
-    const qs = quizScreen(), rs = resScreen();
-    if (qs) qs.style.display = '';
-    if (rs) rs.style.display  = 'none';
+    quizScreen().style.display = '';
+    resScreen().style.display  = 'none';
 
     // meta + title
-    const metaEl = document.getElementById('bq-q-meta');
+    document.getElementById('bq-q-meta').textContent  = q.meta;
+    document.getElementById('bq-q-title').textContent = q.title;
+
+    // trigger re-animation
     const titleEl = document.getElementById('bq-q-title');
-    if (metaEl) metaEl.textContent = q.meta;
-    if (titleEl) {
-      titleEl.textContent = q.title;
-      titleEl.style.animation = 'none';
-      void titleEl.offsetWidth;
-      titleEl.style.animation = '';
-    }
+    titleEl.style.animation = 'none';
+    void titleEl.offsetWidth;
+    titleEl.style.animation = '';
 
     // options
     const container = document.getElementById('bq-options');
-    if (!container) return;
     container.innerHTML = '';
     const saved = answers[q.id] || [];
 
@@ -1728,8 +1653,11 @@ const BioQuiz = (() => {
     // Nav state
     const backBtn = document.getElementById('bq-nav-back');
     const nextBtn = document.getElementById('bq-nav-next');
-    if (backBtn) backBtn.disabled = (currentStep === 0);
-    if (nextBtn) nextBtn.textContent = (currentStep === QUESTIONS.length - 1) ? 'Получить анализ ✓' : 'Далее';
+    backBtn.disabled = (currentStep === 0);
+    nextBtn.textContent = (currentStep === QUESTIONS.length - 1) ? 'Получить анализ ✓' : 'Далее';
+    if (currentStep === QUESTIONS.length - 1) {
+      nextBtn.insertAdjacentHTML('beforeend', '');
+    }
 
     updateProgress(currentStep, QUESTIONS.length);
   }
@@ -1754,9 +1682,8 @@ const BioQuiz = (() => {
   function restart() {
     currentStep = 0;
     answers     = {};
-    const qs = quizScreen(), rs = resScreen();
-    if (qs) qs.style.display = '';
-    if (rs) rs.style.display  = 'none';
+    quizScreen().style.display = '';
+    resScreen().style.display  = 'none';
     showQuestion();
   }
 
@@ -1849,18 +1776,15 @@ const BioQuiz = (() => {
 
   /* ── Show results ── */
   function showResults() {
-    if (!overlay()) return;
-    const qs = quizScreen(), rs = resScreen(), pf = progressFill(), sl = stepLabel();
-    if (qs) qs.style.display = 'none';
-    if (rs) rs.style.display  = '';
-    if (pf) pf.style.width = '100%';
-    if (sl) sl.textContent    = 'АНАЛИЗ ЗАВЕРШЁН · ПРОФИЛЬ ГОТОВ';
+    quizScreen().style.display = 'none';
+    resScreen().style.display  = '';
+    progressFill().style.width = '100%';
+    stepLabel().textContent    = 'АНАЛИЗ ЗАВЕРШЁН · ПРОФИЛЬ ГОТОВ';
 
     const scores = computeBiomarkers();
 
     // Biomarker cards
     const bioGrid = document.getElementById('bq-bio-grid');
-    if (!bioGrid) return;
     bioGrid.innerHTML = '';
     BIOMARKERS.forEach((bm, idx) => {
       const val = Math.round(scores[bm.key] || 50);
@@ -1893,14 +1817,12 @@ const BioQuiz = (() => {
     renderRecommendations(scores);
 
     // Scroll to top of modal
-    const ov = overlay();
-    if (ov) { const m = ov.querySelector('.bq-modal'); if (m) m.scrollTop = 0; }
+    overlay().querySelector('.bq-modal').scrollTop = 0;
   }
 
   /* ── Render recommendations ── */
   function renderRecommendations(scores) {
     const grid = document.getElementById('bq-recs-grid');
-    if (!grid) return;
     grid.innerHTML = '';
 
     // Try to get real products from State
@@ -2044,83 +1966,15 @@ const BioQuiz = (() => {
 
   /* ── Close on Escape ── */
   document.addEventListener('keydown', e => {
-    const ov = overlay();
-    if (e.key === 'Escape' && ov && ov.classList.contains('open')) close();
+    if (e.key === 'Escape' && overlay().classList.contains('open')) close();
   });
 
   /* ── Close on overlay click ── */
   document.addEventListener('click', e => {
-    const ov = overlay();
-    if (ov && e.target === ov) close();
+    if (e.target === overlay()) close();
   });
 
   return { open, close, closeOuter, next, prev, restart, addToCart };
 })();
 
 window.BioQuiz = BioQuiz;
-
-/* ============================================================
-   PREMIUM UI INIT — Loader, Reveal Animations, Navbar
-============================================================ */
-(function initPremiumUI() {
-
-  /* ── Page loader ── */
-  const fill = document.getElementById('loader-fill');
-  const loader = document.getElementById('page-loader');
-  if (fill && loader) {
-    let prog = 0;
-    const iv = setInterval(() => {
-      prog = Math.min(prog + Math.random() * 18 + 8, 92);
-      fill.style.width = prog + '%';
-    }, 120);
-    window.addEventListener('load', () => {
-      clearInterval(iv);
-      fill.style.width = '100%';
-      setTimeout(() => loader.classList.add('hidden'), 400);
-    });
-    setTimeout(() => {
-      clearInterval(iv);
-      fill.style.width = '100%';
-      loader.classList.add('hidden');
-    }, 2800);
-  }
-
-  /* ── Scroll reveal (Intersection Observer) ── */
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('revealed');
-        observer.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.15 });
-
-  document.querySelectorAll('.reveal-left, .reveal-right').forEach(el => observer.observe(el));
-
-  /* ── Category card observer ── */
-  const cardObserver = new IntersectionObserver((entries) => {
-    entries.forEach((e, i) => {
-      if (e.isIntersecting) {
-        setTimeout(() => e.target.style.opacity = '1', i * 80);
-        cardObserver.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.1 });
-
-  document.querySelectorAll('.cat-card').forEach(el => {
-    el.style.opacity = '0';
-    el.style.transition = 'opacity .5s ease, transform .3s ease, border-color .3s, background .3s, box-shadow .3s';
-    cardObserver.observe(el);
-  });
-
-  /* ── Cart count format ── */
-  const cartCount = document.getElementById('cart-count');
-  if (cartCount) {
-    const mo = new MutationObserver(() => {
-      cartCount.classList.add('bump');
-      setTimeout(() => cartCount.classList.remove('bump'), 320);
-    });
-    mo.observe(cartCount, { childList: true, characterData: true, subtree: true });
-  }
-
-})();
