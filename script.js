@@ -420,17 +420,17 @@ const UI = (() => {
     const { cls, txt } = stockInfo(p);
 
     return `<div class="p-card" role="listitem" onclick="ProductModal.open('${esc(p.id)}')"
-              style="animation-delay:${Math.min(idx * 30, 400)}ms">
+              style="animation-delay:${Math.min(idx * 40, 400)}ms">
       <div class="p-img">
         ${imgSrc
           ? `<img src="${esc(imgSrc)}" alt="${esc(p.name)}" loading="lazy">`
           : `<div class="p-img-ph" aria-hidden="true"></div>`}
         ${disc ? `<div class="p-disc">-${disc}%</div>` : ''}
-        ${!buyable ? `<div class="p-sold">НЕТ В НАЛИЧИИ</div>` : ''}
+        ${!buyable ? `<div class="p-sold">OUT OF STOCK</div>` : ''}
       </div>
 
       <div class="p-admin-bar">
-        <button class="p-btn-edit" onclick="event.stopPropagation();Admin.openEdit('${esc(p.id)}')">✏ Изменить</button>
+        <button class="p-btn-edit" onclick="event.stopPropagation();Admin.openEdit('${esc(p.id)}')">✏ Edit</button>
         <button class="p-btn-del"  onclick="event.stopPropagation();Admin.quickDel('${esc(p.id)}')">🗑</button>
       </div>
 
@@ -445,12 +445,12 @@ const UI = (() => {
           <button class="p-add-btn${buyable ? '' : ' sold'}${qty > 0 ? ' hide' : ''}"
             onclick="event.stopPropagation();${buyable ? `Cart.add('${esc(p.id)}')` : ''}"
             ${!buyable ? 'disabled' : ''}>
-            ${buyable ? '+ Добавить' : 'Нет в наличии'}
+            ${buyable ? '+ ADD TO CART' : 'Out of Stock'}
           </button>
           <div class="p-qty${qty > 0 ? ' show' : ''}" id="pqty-${p.id}">
-            <button class="q-btn minus" onclick="event.stopPropagation();Cart.dec('${esc(p.id)}')" aria-label="Убрать">−</button>
+            <button class="q-btn minus" onclick="event.stopPropagation();Cart.dec('${esc(p.id)}')" aria-label="Decrease">−</button>
             <div class="q-val" id="pqv-${p.id}">${qty}</div>
-            <button class="q-btn plus"  onclick="event.stopPropagation();Cart.add('${esc(p.id)}')" aria-label="Добавить">+</button>
+            <button class="q-btn plus"  onclick="event.stopPropagation();Cart.add('${esc(p.id)}')" aria-label="Increase">+</button>
           </div>
         </div>
       </div>
@@ -758,16 +758,16 @@ const Admin = (() => {
   function toggleOrLogin() {
     if (State.adminMode) { disable(); return; }
     openOverlay('overlay-login');
-    const pw = document.getElementById('login-pw');
+    const pw = document.getElementById('admin-pass') || document.getElementById('login-pw');
     if (pw) { pw.value = ''; pw.focus(); }
     const err = document.getElementById('login-err');
     if (err) err.classList.add('hidden');
   }
 
   async function login() {
-    const pw    = (document.getElementById('login-pw') || {}).value || '';
+    const pw    = (document.getElementById('admin-pass') || document.getElementById('login-pw') || {}).value || '';
     const errEl = document.getElementById('login-err');
-    const inp   = document.getElementById('login-pw');
+    const inp   = document.getElementById('admin-pass') || document.getElementById('login-pw');
     const hash  = await hashPassword(pw);
     if (hash === ADMIN_PASS_HASH) {
       closeOverlay('overlay-login');
@@ -1970,3 +1970,69 @@ const BioQuiz = (() => {
 })();
 
 window.BioQuiz = BioQuiz;
+
+/* ============================================================
+   PREMIUM UI INIT — Loader, Reveal Animations, Navbar
+============================================================ */
+(function initPremiumUI() {
+
+  /* ── Page loader ── */
+  const fill = document.getElementById('loader-fill');
+  const loader = document.getElementById('page-loader');
+  if (fill && loader) {
+    let prog = 0;
+    const iv = setInterval(() => {
+      prog = Math.min(prog + Math.random() * 18 + 8, 92);
+      fill.style.width = prog + '%';
+    }, 120);
+    window.addEventListener('load', () => {
+      clearInterval(iv);
+      fill.style.width = '100%';
+      setTimeout(() => loader.classList.add('hidden'), 400);
+    });
+    setTimeout(() => {
+      clearInterval(iv);
+      fill.style.width = '100%';
+      loader.classList.add('hidden');
+    }, 2800);
+  }
+
+  /* ── Scroll reveal (Intersection Observer) ── */
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('revealed');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.reveal-left, .reveal-right').forEach(el => observer.observe(el));
+
+  /* ── Category card observer ── */
+  const cardObserver = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.style.opacity = '1', i * 80);
+        cardObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.cat-card').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transition = 'opacity .5s ease, transform .3s ease, border-color .3s, background .3s, box-shadow .3s';
+    cardObserver.observe(el);
+  });
+
+  /* ── Cart count format ── */
+  const cartCount = document.getElementById('cart-count');
+  if (cartCount) {
+    const mo = new MutationObserver(() => {
+      cartCount.classList.add('bump');
+      setTimeout(() => cartCount.classList.remove('bump'), 320);
+    });
+    mo.observe(cartCount, { childList: true, characterData: true, subtree: true });
+  }
+
+})();
