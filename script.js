@@ -423,8 +423,8 @@ const UI = (() => {
     const imgSrc  = p.imageUrl || '';
     const { cls, txt } = stockInfo(p);
 
-    return `<div class="p-card" role="listitem" onclick="ProductModal.open('${esc(p.id)}')"
-              style="animation-delay:${Math.min(idx * 40, 400)}ms">
+    return `<div class="p-card" role="listitem" data-product-id="${esc(p.id)}"
+              style="animation-delay:${Math.min(idx * 40, 400)}ms;cursor:pointer">
       <div class="p-img">
         ${imgSrc
           ? `<img src="${esc(imgSrc)}" alt="${esc(p.name)}" loading="lazy">`
@@ -1173,6 +1173,13 @@ document.addEventListener('keydown', e => {
     const inp = document.getElementById('search-input');
     if (inp) inp.focus();
   }
+});
+
+/* ── Product card click — event delegation (robust, no inline onclick) ── */
+document.addEventListener('click', function(e) {
+  if (e.target.closest('button, a, select, input, label')) return;
+  const card = e.target.closest('[data-product-id]');
+  if (card) ProductModal.open(card.dataset.productId);
 });
 
 /* ============================================================
