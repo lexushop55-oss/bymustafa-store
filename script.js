@@ -654,10 +654,14 @@ const CartUI = (() => {
 ============================================================ */
 const ProductModal = (() => {
 
+  let _qty = 1;
+
   function open(id) {
     const p = State.products.find(x => x.id === id);
     if (!p) return;
     State.modalId = id;
+    _qty = 1;
+    setEl('modal-qty-val', _qty);
 
     // Image (Firebase Storage URL)
     const imgSrc = p.imageUrl || '';
@@ -736,6 +740,33 @@ const ProductModal = (() => {
     if (e.target === document.getElementById('overlay-product')) close();
   }
 
+  function inc() {
+    _qty = Math.min(_qty + 1, 99);
+    setEl('modal-qty-val', _qty);
+  }
+
+  function dec() {
+    _qty = Math.max(_qty - 1, 1);
+    setEl('modal-qty-val', _qty);
+  }
+
+  function addFromModal() {
+    if (!State.modalId) return;
+    const p = State.products.find(x => x.id === State.modalId);
+    if (!p || !canBuy(p)) return;
+    const existing = State.cart.find(x => x.id === State.modalId);
+    if (existing) {
+      existing.qty += _qty;
+    } else {
+      State.cart.push({ id: p.id, name: p.name, price: p.price, qty: _qty });
+    }
+    Store.saveCart(State.cart);
+    CartUI.updateCount();
+    Toast.show(`Добавлено в корзину: ${_qty} шт.`, 'success');
+    UI.syncCard(State.modalId);
+    close();
+  }
+
   function add() {
     if (State.modalId) { Cart.add(State.modalId); close(); }
   }
@@ -746,7 +777,7 @@ const ProductModal = (() => {
     Admin.openEdit(id);
   }
 
-  return { open, close, closeOuter, add, edit };
+  return { open, close, closeOuter, add, inc, dec, addFromModal, edit };
 })();
 
 /* ============================================================
@@ -1578,50 +1609,66 @@ const BioQuiz = (() => {
 
   /* ── Open / Close ── */
   function open() {
+    const ov = overlay();
+    if (!ov) {
+      // fallback: scroll to catalog if overlay not found
+      const el = document.getElementById('catalog');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
     currentStep = 0;
     answers     = {};
-    overlay().classList.add('open');
+    ov.classList.add('open');
     document.body.style.overflow = 'hidden';
     showQuestion();
     spawnParticles();
   }
 
   function close() {
-    overlay().classList.remove('open');
+    const ov = overlay();
+    if (!ov) return;
+    ov.classList.remove('open');
     document.body.style.overflow = '';
   }
 
   function closeOuter(e) {
-    if (e.target === overlay()) close();
+    const ov = overlay();
+    if (ov && e.target === ov) close();
   }
 
   /* ── Progress ── */
   function updateProgress(step, total) {
+    const pf = progressFill(), sl = stepLabel();
+    if (!pf) return;
     const pct = Math.round((step / total) * 100);
-    progressFill().style.width = pct + '%';
+    pf.style.width = pct + '%';
     const padded = String(step + 1).padStart(2, '0');
     const tot    = String(total).padStart(2, '0');
-    stepLabel().textContent = `ИНИЦИАЛИЗАЦИЯ · МОДУЛЬ ${padded}/${tot}`;
+    if (sl) sl.textContent = `ИНИЦИАЛИЗАЦИЯ · МОДУЛЬ ${padded}/${tot}`;
   }
 
   /* ── Render question ── */
   function showQuestion() {
+    if (!overlay()) return;
     const q = QUESTIONS[currentStep];
-    quizScreen().style.display = '';
-    resScreen().style.display  = 'none';
+    const qs = quizScreen(), rs = resScreen();
+    if (qs) qs.style.display = '';
+    if (rs) rs.style.display  = 'none';
 
     // meta + title
-    document.getElementById('bq-q-meta').textContent  = q.meta;
-    document.getElementById('bq-q-title').textContent = q.title;
-
-    // trigger re-animation
+    const metaEl = document.getElementById('bq-q-meta');
     const titleEl = document.getElementById('bq-q-title');
-    titleEl.style.animation = 'none';
-    void titleEl.offsetWidth;
-    titleEl.style.animation = '';
+    if (metaEl) metaEl.textContent = q.meta;
+    if (titleEl) {
+      titleEl.textContent = q.title;
+      titleEl.style.animation = 'none';
+      void titleEl.offsetWidth;
+      titleEl.style.animation = '';
+    }
 
     // options
     const container = document.getElementById('bq-options');
+    if (!container) return;
     container.innerHTML = '';
     const saved = answers[q.id] || [];
 
@@ -1645,11 +1692,8 @@ const BioQuiz = (() => {
     // Nav state
     const backBtn = document.getElementById('bq-nav-back');
     const nextBtn = document.getElementById('bq-nav-next');
-    backBtn.disabled = (currentStep === 0);
-    nextBtn.textContent = (currentStep === QUESTIONS.length - 1) ? 'Получить анализ ✓' : 'Далее';
-    if (currentStep === QUESTIONS.length - 1) {
-      nextBtn.insertAdjacentHTML('beforeend', '');
-    }
+    if (backBtn) backBtn.disabled = (currentStep === 0);
+    if (nextBtn) nextBtn.textContent = (currentStep === QUESTIONS.length - 1) ? 'Получить анализ ✓' : 'Далее';
 
     updateProgress(currentStep, QUESTIONS.length);
   }
@@ -1674,8 +1718,9 @@ const BioQuiz = (() => {
   function restart() {
     currentStep = 0;
     answers     = {};
-    quizScreen().style.display = '';
-    resScreen().style.display  = 'none';
+    const qs = quizScreen(), rs = resScreen();
+    if (qs) qs.style.display = '';
+    if (rs) rs.style.display  = 'none';
     showQuestion();
   }
 
@@ -1768,15 +1813,18 @@ const BioQuiz = (() => {
 
   /* ── Show results ── */
   function showResults() {
-    quizScreen().style.display = 'none';
-    resScreen().style.display  = '';
-    progressFill().style.width = '100%';
-    stepLabel().textContent    = 'АНАЛИЗ ЗАВЕРШЁН · ПРОФИЛЬ ГОТОВ';
+    if (!overlay()) return;
+    const qs = quizScreen(), rs = resScreen(), pf = progressFill(), sl = stepLabel();
+    if (qs) qs.style.display = 'none';
+    if (rs) rs.style.display  = '';
+    if (pf) pf.style.width = '100%';
+    if (sl) sl.textContent    = 'АНАЛИЗ ЗАВЕРШЁН · ПРОФИЛЬ ГОТОВ';
 
     const scores = computeBiomarkers();
 
     // Biomarker cards
     const bioGrid = document.getElementById('bq-bio-grid');
+    if (!bioGrid) return;
     bioGrid.innerHTML = '';
     BIOMARKERS.forEach((bm, idx) => {
       const val = Math.round(scores[bm.key] || 50);
@@ -1809,12 +1857,14 @@ const BioQuiz = (() => {
     renderRecommendations(scores);
 
     // Scroll to top of modal
-    overlay().querySelector('.bq-modal').scrollTop = 0;
+    const ov = overlay();
+    if (ov) { const m = ov.querySelector('.bq-modal'); if (m) m.scrollTop = 0; }
   }
 
   /* ── Render recommendations ── */
   function renderRecommendations(scores) {
     const grid = document.getElementById('bq-recs-grid');
+    if (!grid) return;
     grid.innerHTML = '';
 
     // Try to get real products from State
@@ -1958,12 +2008,14 @@ const BioQuiz = (() => {
 
   /* ── Close on Escape ── */
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && overlay().classList.contains('open')) close();
+    const ov = overlay();
+    if (e.key === 'Escape' && ov && ov.classList.contains('open')) close();
   });
 
   /* ── Close on overlay click ── */
   document.addEventListener('click', e => {
-    if (e.target === overlay()) close();
+    const ov = overlay();
+    if (ov && e.target === ov) close();
   });
 
   return { open, close, closeOuter, next, prev, restart, addToCart };

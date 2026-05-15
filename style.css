@@ -490,29 +490,57 @@ input, select, textarea { font: inherit; }
   inset: 0;
   z-index: 0;
 }
-.hero-bg-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center 20%;
-}
 .hero-bg-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    110deg,
-    rgba(10,10,10,0.92) 0%,
-    rgba(10,10,10,0.75) 45%,
-    rgba(10,10,10,0.30) 100%
-  );
+  background: radial-gradient(ellipse at 65% 50%, rgba(201,169,110,0.07) 0%, transparent 65%);
 }
 .hero-content {
   position: relative;
   z-index: 1;
   padding-top: 120px;
   padding-bottom: 80px;
+  display: flex;
+  align-items: center;
+  gap: 60px;
+  width: 100%;
 }
-.hero-left { max-width: 580px; }
+.hero-left {
+  flex: 1;
+  max-width: 52%;
+}
+.hero-right {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  position: relative;
+}
+.hero-product-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70%;
+  height: 70%;
+  background: radial-gradient(circle, rgba(201,169,110,0.14), transparent 70%);
+  border-radius: 50%;
+  z-index: 0;
+  pointer-events: none;
+}
+.hero-product-img {
+  max-width: 560px;
+  width: 100%;
+  object-fit: contain;
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 20px 60px rgba(201,169,110,0.22)) drop-shadow(0 0 120px rgba(201,169,110,0.10));
+  animation: hero-float 5s ease-in-out infinite;
+}
+@keyframes hero-float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-14px); }
+}
 .hero-eyebrow {
   display: flex;
   align-items: center;
@@ -1510,14 +1538,6 @@ input, select, textarea { font: inherit; }
 .modal-tg strong { display: block; font-weight: 600; color: var(--text); }
 .modal-tg small { font-size: 11px; color: var(--gold); }
 #modal-body { margin-bottom: 24px; }
-.modal-img {
-  width: 100%;
-  aspect-ratio: 3/2;
-  border-radius: var(--r-lg);
-  object-fit: cover;
-  background: var(--bg3);
-  margin-bottom: 24px;
-}
 .modal-name {
   font-family: 'Playfair Display', serif;
   font-size: 26px;
@@ -1528,8 +1548,45 @@ input, select, textarea { font: inherit; }
 .modal-price-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
 .modal-price { font-family: 'Playfair Display', serif; font-size: 30px; color: var(--text); }
 .modal-oldp { font-size: 16px; color: var(--text4); text-decoration: line-through; }
-.modal-stock { font-size: 13px; margin-bottom: 20px; }
-.modal-desc { font-size: 14px; color: var(--text2); line-height: 1.7; }
+.modal-img-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4/3;
+  margin-bottom: 24px;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--bg3);
+}
+.modal-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.modal-img-ph {
+  width: 100%;
+  height: 100%;
+  background: var(--bg3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-disc {
+  position: absolute;
+  top: 12px; left: 12px;
+}
+.modal-pct {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--green);
+  background: rgba(74,222,128,0.12);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.modal-stock { font-size: 13px; margin-bottom: 20px; padding: 6px 0; }
+.modal-stock.ok  { color: var(--green); }
+.modal-stock.low { color: var(--amber); }
+.modal-stock.no  { color: var(--red); }
+.modal-desc { font-size: 14px; color: var(--text2); line-height: 1.7; margin-bottom: 24px; }
 #modal-add-wrap { display: flex; gap: 12px; align-items: center; }
 .modal-qty-row {
   display: flex;
@@ -1702,9 +1759,15 @@ input, select, textarea { font: inherit; }
   .trust-grid { justify-content: flex-start; gap: 8px; }
   .trust-item { min-width: calc(50% - 12px); flex: none; }
   .footer-top { grid-template-columns: 1fr 1fr; gap: 32px; }
+  .hero-left { max-width: 55%; }
+  .hero-product-img { max-width: 420px; }
 }
 @media (max-width: 768px) {
   .container { padding: 0 16px; }
+  .hero-content { flex-direction: column; gap: 36px; padding-top: 100px; }
+  .hero-left { max-width: 100%; }
+  .hero-right { justify-content: center; width: 100%; }
+  .hero-product-img { max-width: 320px; }
   .hero-title { font-size: clamp(40px, 10vw, 60px); }
   .hero-ctas { flex-direction: column; align-items: flex-start; }
   .cats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
