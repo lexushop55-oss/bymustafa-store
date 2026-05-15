@@ -514,52 +514,28 @@ input, select, textarea { font: inherit; }
 .hero-right {
   position: relative;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
+  background: url('hero.png') center / cover no-repeat;
 }
-/* Left edge fade — clean separation from text column */
+/* Left edge fade — blends image into text column */
 .hero-right::before {
   content: '';
   position: absolute;
   top: 0; left: 0;
-  width: 18%;
+  width: 30%;
   height: 100%;
-  background: linear-gradient(to right, #0A0A0A 30%, transparent 100%);
+  background: linear-gradient(to right, #0A0A0A 0%, transparent 100%);
   z-index: 2;
   pointer-events: none;
 }
-/* Bottom fade — blends with trust bar */
+/* Bottom fade — blends into trust bar */
 .hero-right::after {
   content: '';
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  height: 15%;
+  height: 20%;
   background: linear-gradient(to top, #0A0A0A 0%, transparent 100%);
   z-index: 2;
   pointer-events: none;
-}
-.hero-product-glow {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 60% 60%, rgba(201,169,110,0.08) 0%, transparent 60%);
-  pointer-events: none;
-  z-index: 0;
-}
-.hero-product-img {
-  width: auto;
-  height: 80%;
-  max-width: none;
-  object-fit: contain;
-  position: relative;
-  z-index: 1;
-  filter: drop-shadow(0 0 40px rgba(201,169,110,0.15));
-  animation: hero-float 5s ease-in-out infinite;
-}
-@keyframes hero-float {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-12px); }
 }
 .hero-eyebrow {
   display: flex;
@@ -1776,8 +1752,7 @@ input, select, textarea { font: inherit; }
   .container { padding: 0 16px; }
   .hero-content { grid-template-columns: 1fr; }
   .hero-left { padding: 100px 24px 40px; max-width: 100%; }
-  .hero-right { height: 50vh; }
-  .hero-product-img { height: 90%; width: auto; max-width: none; }
+  .hero-right { height: 50vh; background-position: center center; }
   .hero-title { font-size: clamp(40px, 10vw, 60px); }
   .hero-ctas { flex-direction: column; align-items: flex-start; }
   .cats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
