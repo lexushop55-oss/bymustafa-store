@@ -3,264 +3,887 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="by MUSTAFA — Premium Shop">
-  <title>by MUSTAFA</title>
+  <meta name="description" content="MUSTAFA Premium — Premium biohacking supplements. Energy. Focus. Control.">
+  <meta property="og:title" content="MUSTAFA Premium — Biohacking Store">
+  <meta property="og:description" content="Premium nootropics and supplements designed to elevate your performance.">
+  <meta property="og:image" content="https://bymustafa.store/hero.png">
+  <meta property="og:url" content="https://bymustafa.store">
+  <meta name="twitter:card" content="summary_large_image">
+  <title>MUSTAFA Premium — Biohacking Store</title>
+
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png">
+  <link rel="apple-touch-icon" href="favicon.png">
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+
+  <link rel="stylesheet" href="style.css?v=28">
 </head>
 <body>
 
-<!-- ── TOPBAR ── -->
-<header class="topbar">
-  <button class="logo" onclick="App.goHome()" aria-label="На главную">
-    <span class="logo-gem">M</span>
-    <span class="logo-text">by <strong>MUSTAFA</strong></span>
-  </button>
-
-  <div class="search-wrap">
-    <span class="search-icon" aria-hidden="true">⌕</span>
-    <input id="search-input" class="search-input" type="search"
-           placeholder="Поиск…" autocomplete="off"
-           oninput="App.search(this.value)" aria-label="Поиск товаров">
-    <button id="search-clear" class="search-clear" onclick="App.clearSearch()" aria-label="Сбросить поиск">✕</button>
+<!-- ── PAGE LOADER ── -->
+<div class="loader" id="page-loader">
+  <div class="loader-inner">
+    <img src="favicon.png" alt="M" class="loader-logo">
+    <div class="loader-bar"><div class="loader-fill" id="loader-fill"></div></div>
+    <span class="loader-text">MUSTAFA PREMIUM</span>
   </div>
+</div>
 
-  <div class="topbar-actions">
-    <button id="btn-admin" class="btn-icon hidden" onclick="Admin.toggleOrLogin()" title="Панель администратора">
-      <span class="admin-dot" id="admin-dot"></span>Admin
+<!-- ── TOAST ── -->
+<div id="toast-wrap" class="toast-wrap"></div>
+
+<!-- ── NAVBAR ── -->
+<header class="navbar" id="navbar">
+  <div class="navbar-inner">
+
+    <!-- Logo -->
+    <button class="nav-logo" onclick="App.goHome()" aria-label="На главную">
+      <div class="nav-logo-img-wrap">
+        <img src="favicon.png" alt="MUSTAFA" class="nav-logo-img">
+      </div>
+      <div class="nav-logo-text">
+        <strong class="nav-logo-brand">MUSTAFA</strong>
+        <span class="nav-logo-sub">PREMIUM</span>
+      </div>
     </button>
-    <button id="btn-add" class="btn-add hidden" onclick="Admin.openAdd()">+ Добавить</button>
-    <button class="btn-cart" onclick="CartUI.open()" aria-label="Корзина">
-      🛒 <span id="cart-count" class="cart-count">0</span>
-    </button>
+
+    <!-- Center nav -->
+    <nav class="nav-links" aria-label="Навигация">
+      <a href="#catalog" class="nav-link" data-i18n="nav.shop">SHOP</a>
+      <a href="#stacks" class="nav-link" data-i18n="nav.stacks">STACKS</a>
+      <a href="#science" class="nav-link" data-i18n="nav.science">SCIENCE</a>
+      <a href="#about" class="nav-link" data-i18n="nav.about">ABOUT</a>
+      <a href="#contact" class="nav-link" data-i18n="nav.contact">CONTACT</a>
+    </nav>
+
+    <!-- Right actions -->
+    <div class="nav-actions">
+      <button class="nav-icon-btn" id="btn-search-open" aria-label="Поиск">
+        <svg viewBox="0 0 20 20" fill="none" width="17" height="17"><circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M13 13L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+      <a href="https://t.me/mustafa_mentor" target="_blank" rel="noopener" class="nav-icon-btn nav-tg" aria-label="Telegram">
+        <svg viewBox="0 0 20 20" fill="none" width="17" height="17"><path d="M17.5 2.5L1.5 8.5l5 2 2 5.5 2.5-3 4 3 2.5-13.5z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <button class="nav-icon-btn nav-cart-btn" onclick="CartUI.open()" aria-label="Корзина">
+        <svg viewBox="0 0 20 20" fill="none" width="17" height="17"><path d="M2 2h2l2.5 9.5a1 1 0 001 .75h7.5a1 1 0 00.97-.76L17.5 6H5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="17" r="1.2" fill="currentColor"/><circle cx="14" cy="17" r="1.2" fill="currentColor"/></svg>
+        <span id="cart-count" class="cart-badge">0</span>
+      </button>
+
+      <!-- Lang switch -->
+      <div class="lang-switch">
+        <button class="lang-btn active" data-lang="ru" onclick="I18n.set('ru',this)">RU</button>
+        <span class="lang-sep">|</span>
+        <button class="lang-btn" data-lang="en" onclick="I18n.set('en',this)">EN</button>
+      </div>
+
+      <!-- Admin (hidden) -->
+      <button id="btn-admin" class="btn-icon hidden" onclick="Admin.toggleOrLogin()">
+        <span class="admin-dot" id="admin-dot"></span>Admin
+      </button>
+      <button id="btn-add" class="btn-add hidden" onclick="Admin.openAdd()">+ Add</button>
+
+      <!-- Hamburger -->
+      <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Меню">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
   </div>
 </header>
 
-<!-- ── LAYOUT ── -->
-<div class="layout">
-
-  <!-- Sidebar -->
-  <nav class="sidebar" id="sidebar" aria-label="Категории">
-    <p class="sidebar-label">Категории</p>
-    <button class="cat-btn active" data-cat="all" onclick="App.filterCat('all', this)">
-      <span>◈</span> Все товары <span class="cat-count" id="cnt-all">0</span>
-    </button>
-    <button class="cat-btn" data-cat="bady" onclick="App.filterCat('bady', this)">
-      <span>💊</span> БАДы <span class="cat-count" id="cnt-bady">0</span>
-    </button>
-    <button class="cat-btn" data-cat="protein" onclick="App.filterCat('protein', this)">
-      <span>💪</span> Протеин <span class="cat-count" id="cnt-protein">0</span>
-    </button>
-    <button class="cat-btn" data-cat="nootropic" onclick="App.filterCat('nootropic', this)">
-      <span>🧠</span> Ноотропы <span class="cat-count" id="cnt-nootropic">0</span>
-    </button>
-    <button class="cat-btn" data-cat="mushroom" onclick="App.filterCat('mushroom', this)">
-      <span>🍄</span> Грибы <span class="cat-count" id="cnt-mushroom">0</span>
-    </button>
-    <hr class="sidebar-hr">
-    <button class="cat-btn" data-cat="vitamin" onclick="App.filterCat('vitamin', this)">
-      <span>🛡</span> Витамины <span class="cat-count" id="cnt-vitamin">0</span>
-    </button>
-    <button class="cat-btn" data-cat="amino" onclick="App.filterCat('amino', this)">
-      <span>⚡</span> Аминокислоты <span class="cat-count" id="cnt-amino">0</span>
-    </button>
-    <button class="cat-btn" data-cat="fat" onclick="App.filterCat('fat', this)">
-      <span>🔥</span> Жиросжигатели <span class="cat-count" id="cnt-fat">0</span>
-    </button>
-    <hr class="sidebar-hr">
-    <button class="cat-btn" data-cat="clothes" onclick="App.filterCat('clothes', this)">
-      <span>👕</span> Одежда <span class="cat-count" id="cnt-clothes">0</span>
-    </button>
-    <button class="cat-btn" data-cat="other" onclick="App.filterCat('other', this)">
-      <span>📦</span> Прочее <span class="cat-count" id="cnt-other">0</span>
-    </button>
-  </nav>
-
-  <!-- Main -->
-  <main class="main" id="main">
-    <!-- Admin stats bar -->
-    <div class="stats-bar hidden" id="stats-bar">
-      <div class="stat-card"><div class="stat-val" id="st-total">0</div><div class="stat-lbl">Товаров</div></div>
-      <div class="stat-card"><div class="stat-val" id="st-avail">0</div><div class="stat-lbl">В наличии</div></div>
-      <div class="stat-card"><div class="stat-val" id="st-sold">0</div><div class="stat-lbl">Нет в наличии</div></div>
-      <div class="stat-card">
-        <div class="stat-val" id="st-storage">0 KB</div>
-        <div class="stat-lbl">localStorage</div>
-        <button class="btn-clear-cache" onclick="Store.clearAll()">Очистить</button>
+<!-- ── MOBILE MENU ── -->
+<div class="mobile-menu" id="mobile-menu">
+  <div class="mm-inner">
+    <nav class="mm-nav">
+      <a href="#catalog" class="mm-link" onclick="closeMobileMenu()" data-i18n="nav.shop">SHOP</a>
+      <a href="#stacks" class="mm-link" onclick="closeMobileMenu()" data-i18n="nav.stacks">STACKS</a>
+      <a href="#science" class="mm-link" onclick="closeMobileMenu()" data-i18n="nav.science">SCIENCE</a>
+      <a href="#about" class="mm-link" onclick="closeMobileMenu()" data-i18n="nav.about">ABOUT</a>
+      <a href="#contact" class="mm-link" onclick="closeMobileMenu()" data-i18n="nav.contact">CONTACT</a>
+    </nav>
+    <div class="mm-footer">
+      <a href="https://t.me/mustafa_mentor" target="_blank" rel="noopener" class="mm-tg">Telegram Channel</a>
+      <div class="mm-lang">
+        <button class="lang-btn active" data-lang="ru" onclick="I18n.set('ru',this)">RU</button>
+        <span class="lang-sep">|</span>
+        <button class="lang-btn" data-lang="en" onclick="I18n.set('en',this)">EN</button>
       </div>
-    </div>
-
-    <!-- Page header -->
-    <div class="page-header">
-      <div>
-        <h1 class="page-title" id="page-title">Все товары</h1>
-        <p class="page-sub" id="page-sub"></p>
-      </div>
-      <select class="sort-select" onchange="App.setSort(this.value)" aria-label="Сортировка">
-        <option value="">По умолчанию</option>
-        <option value="price-asc">Цена ↑</option>
-        <option value="price-desc">Цена ↓</option>
-        <option value="name">По названию</option>
-        <option value="avail">В наличии</option>
-        <option value="new">Новые</option>
-      </select>
-    </div>
-
-    <!-- Product grid -->
-    <div class="grid" id="grid" role="list"></div>
-  </main>
-</div>
-
-<!-- ── PRODUCT MODAL ── -->
-<div class="overlay" id="overlay-product" onclick="ProductModal.closeOuter(event)" role="dialog" aria-modal="true">
-  <div class="modal">
-    <div class="modal-img-wrap">
-      <div class="modal-img-ph" id="modal-img-ph">💊</div>
-      <img id="modal-img" src="" alt="" loading="lazy" style="display:none">
-      <span class="modal-disc-tag" id="modal-disc" style="display:none"></span>
-      <button class="modal-close" onclick="ProductModal.close()" aria-label="Закрыть">✕</button>
-    </div>
-    <div class="modal-body">
-      <p class="modal-cat" id="modal-cat"></p>
-      <h2 class="modal-name" id="modal-name"></h2>
-      <div class="modal-price-row">
-        <span class="modal-price" id="modal-price"></span>
-        <span class="modal-oldp hidden" id="modal-oldp"></span>
-        <span class="modal-pct hidden" id="modal-pct"></span>
-      </div>
-      <div class="modal-stock" id="modal-stock"><span class="stock-dot"></span><span id="modal-stock-txt"></span></div>
-      <hr class="modal-hr">
-      <p class="modal-desc-lbl">Описание</p>
-      <p class="modal-desc" id="modal-desc"></p>
-      <div class="modal-actions">
-        <button class="btn-modal-edit hidden" id="modal-edit-btn" onclick="ProductModal.edit()">✏ Изменить</button>
-        <button class="btn-modal-add" id="modal-add-btn" onclick="ProductModal.add()">+ В корзину</button>
-      </div>
-      <a class="modal-tg" href="https://t.me/Mustafa_biohacking" target="_blank" rel="noopener">
-        <span>✈️</span>
-        <div><strong>Задать вопрос</strong><small>@Mustafa_biohacking — ответим быстро</small></div>
-      </a>
     </div>
   </div>
 </div>
+<div class="mm-overlay" id="mm-overlay" onclick="closeMobileMenu()"></div>
 
-<!-- ── ADMIN LOGIN ── -->
-<div class="overlay" id="overlay-login" onclick="Admin.closeLoginOuter(event)" role="dialog" aria-modal="true">
-  <div class="login-box">
-    <div class="login-gem">M</div>
-    <h2 class="login-title">Вход для администратора</h2>
-    <p class="login-sub">Введи пароль для управления магазином</p>
-    <label class="flabel" for="login-pw">Пароль</label>
-    <input id="login-pw" class="finput" type="password" placeholder="••••••••"
-           autocomplete="current-password" onkeydown="if(event.key==='Enter')Admin.login()">
-    <p class="login-err hidden" id="login-err">Неверный пароль</p>
-    <button class="btn-login" onclick="Admin.login()">Войти →</button>
-    <button class="btn-login-cancel" onclick="Admin.closeLogin()">Отмена</button>
-  </div>
-</div>
+<!-- ── MAIN ── -->
+<main>
 
-<!-- ── PRODUCT FORM ── -->
-<div class="overlay" id="overlay-form" onclick="Admin.closeFormOuter(event)" role="dialog" aria-modal="true">
-  <div class="form-box">
-    <button class="form-close" onclick="Admin.closeForm()" aria-label="Закрыть">✕</button>
-    <h2 class="form-title" id="form-title">Новый товар</h2>
-    <p class="form-sub" id="form-sub">Заполни информацию о товаре</p>
-
-    <div class="form-grid">
-      <div class="fg full">
-        <label class="flabel" for="f-name">Название *</label>
-        <input class="finput" id="f-name" type="text" placeholder="Например: Магний бисглицинат" maxlength="120">
-      </div>
-      <div class="fg">
-        <label class="flabel" for="f-price">Цена ₽ *</label>
-        <input class="finput" id="f-price" type="number" placeholder="1200" min="1">
-      </div>
-      <div class="fg">
-        <label class="flabel" for="f-oldp">Старая цена ₽</label>
-        <input class="finput" id="f-oldp" type="number" placeholder="2500" min="1">
-      </div>
-      <div class="fg">
-        <label class="flabel" for="f-cat">Категория</label>
-        <select class="finput" id="f-cat">
-          <option value="bady">💊 БАДы</option>
-          <option value="protein">💪 Протеин</option>
-          <option value="nootropic">🧠 Ноотропы</option>
-          <option value="mushroom">🍄 Грибы</option>
-          <option value="vitamin">🛡 Витамины</option>
-          <option value="amino">⚡ Аминокислоты</option>
-          <option value="fat">🔥 Жиросжигатели</option>
-          <option value="clothes">👕 Одежда</option>
-          <option value="other">📦 Прочее</option>
-        </select>
-      </div>
-      <div class="fg">
-        <label class="flabel" for="f-stock">Остаток (шт.)</label>
-        <input class="finput" id="f-stock" type="number" placeholder="100" min="0">
-      </div>
-      <div class="fg full">
-        <label class="flabel" for="f-desc">Описание</label>
-        <textarea class="finput ftextarea" id="f-desc" placeholder="Состав, эффект, дозировка…" maxlength="1000"></textarea>
-      </div>
-      <div class="fg full">
-        <label class="flabel">Фото товара</label>
-        <div class="upload-zone" id="upload-zone">
-          <input type="file" id="f-file" accept="image/*" onchange="Admin.handleFile(event)">
-          <div class="upload-inner" id="upload-inner">
-            <span class="upload-icon">📷</span>
-            <p>Нажми или перетащи фото<br><small>JPG · PNG · WEBP · макс. 8 MB</small></p>
-          </div>
-          <img id="img-preview" class="img-preview" src="" alt="">
+  <!-- ══ HERO ══ -->
+  <section class="hero" id="hero">
+    <div class="hero-bg">
+      <div class="hero-bg-overlay"></div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-left">
+        <div class="hero-eyebrow" data-i18n="hero.eyebrow">
+          <span class="eyebrow-dot"></span>
+          PREMIUM BIOHACKING SUPPLEMENTS
+        </div>
+        <h1 class="hero-title">
+          <span class="hero-line" data-i18n="hero.line1">Energy.</span>
+          <span class="hero-line" data-i18n="hero.line2">Focus.</span>
+          <span class="hero-line hero-line-gold" data-i18n="hero.line3">Control.</span>
+        </h1>
+        <p class="hero-desc" data-i18n="hero.desc">
+          Premium nootropics and supplements designed to elevate your performance, enhance focus, and support recovery.
+        </p>
+        <div class="hero-ctas">
+          <a href="#catalog" class="btn-primary">
+            <span data-i18n="hero.cta1">VIEW CATALOG</span>
+            <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <button class="btn-ghost" onclick="BioQuiz.open()">
+            <svg viewBox="0 0 16 16" fill="none" width="13" height="13"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3"/><polygon points="6,5 12,8 6,11" fill="currentColor"/></svg>
+            <span data-i18n="hero.cta2">LEARN MORE</span>
+          </button>
         </div>
       </div>
-      <div class="fg full">
-        <label class="chk-label">
-          <input type="checkbox" id="f-instock" checked> Товар в наличии
-        </label>
+      <div class="hero-right"></div>
+    </div>
+    <div class="hero-scroll-hint">
+      <div class="scroll-line"></div>
+      <span>SCROLL</span>
+    </div>
+  </section>
+
+  <!-- ══ TRUST BAR ══ -->
+  <section class="trust-bar" aria-label="Trust signals">
+    <div class="container">
+      <div class="trust-grid">
+        <div class="trust-item">
+          <div class="trust-icon">
+            <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div class="trust-body">
+            <div class="trust-title" data-i18n="trust.1.title">LAB TESTED</div>
+            <div class="trust-sub" data-i18n="trust.1.sub">Third Party Tested</div>
+          </div>
+        </div>
+        <div class="trust-sep"></div>
+        <div class="trust-item">
+          <div class="trust-icon">
+            <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div class="trust-body">
+            <div class="trust-title" data-i18n="trust.2.title">GMP CERTIFIED</div>
+            <div class="trust-sub" data-i18n="trust.2.sub">Highest Standards</div>
+          </div>
+        </div>
+        <div class="trust-sep"></div>
+        <div class="trust-item">
+          <div class="trust-icon">
+            <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div class="trust-body">
+            <div class="trust-title" data-i18n="trust.3.title">PREMIUM QUALITY</div>
+            <div class="trust-sub" data-i18n="trust.3.sub">Only Best Ingredients</div>
+          </div>
+        </div>
+        <div class="trust-sep"></div>
+        <div class="trust-item">
+          <div class="trust-icon">
+            <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M5 12H19M12 5l7 7-7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="trust-body">
+            <div class="trust-title" data-i18n="trust.4.title">FAST DELIVERY</div>
+            <div class="trust-sub" data-i18n="trust.4.sub">Ships Within 24h</div>
+          </div>
+        </div>
+        <div class="trust-sep"></div>
+        <div class="trust-item">
+          <div class="trust-icon">
+            <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M17.5 2.5L1.5 9l6 2.5 2.5 6 2.5-3.5 4.5 4 1.5-15.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="trust-body">
+            <div class="trust-title" data-i18n="trust.5.title">TELEGRAM CHANNEL</div>
+            <div class="trust-sub"><a href="https://t.me/mustafa_mentor" target="_blank" rel="noopener">@mustafa_mentor</a></div>
+          </div>
+        </div>
+        <div class="trust-sep"></div>
+        <div class="trust-item">
+          <div class="trust-icon">
+            <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M8 12l3 3 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div class="trust-body">
+            <div class="trust-title" data-i18n="trust.6.title">100% SAFE</div>
+            <div class="trust-sub" data-i18n="trust.6.sub">Safe for Health</div>
+          </div>
+        </div>
       </div>
     </div>
+  </section>
 
-    <div class="form-actions">
-      <button class="btn-del hidden" id="btn-del" onclick="Admin.deleteProduct()">🗑 Удалить</button>
-      <button class="btn-cancel" onclick="Admin.closeForm()">Отмена</button>
-      <button class="btn-save" onclick="Admin.save()">💾 Сохранить</button>
+  <!-- ══ CATEGORIES ══ -->
+  <section class="categories-section" id="categories">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-eyebrow" data-i18n="cats.eyebrow">WHAT WE OFFER</span>
+        <h2 class="section-title" data-i18n="cats.title">Explore Our Categories</h2>
+      </div>
+      <div class="cats-grid">
+        <button class="cat-card" data-cat="nootropic" onclick="App.filterCatAndScroll('nootropic',this)">
+          <div class="cat-card-icon">
+            <svg viewBox="0 0 32 32" fill="none" width="26" height="26"><path d="M16 4C10.5 4 6 8.4 6 14c0 3.2 1.5 6.1 3.9 8H22c2.4-1.9 4-4.8 4-8 0-5.6-4.5-10-10-10z" stroke="currentColor" stroke-width="1.5"/><path d="M11 28h10M13 22v6M19 22v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div class="cat-card-title" data-i18n="cat.nootropic">NOOTROPICS</div>
+          <div class="cat-card-sub" data-i18n="cat.nootropic.sub">Focus & cognitive function</div>
+          <span class="cat-card-count" id="cnt-nootropic">0</span>
+        </button>
+        <button class="cat-card" data-cat="bady" onclick="App.filterCatAndScroll('bady',this)">
+          <div class="cat-card-icon">
+            <svg viewBox="0 0 32 32" fill="none" width="26" height="26"><ellipse cx="16" cy="16" rx="12" ry="7" stroke="currentColor" stroke-width="1.5"/><line x1="4" y1="16" x2="28" y2="16" stroke="currentColor" stroke-width="1.5"/></svg>
+          </div>
+          <div class="cat-card-title" data-i18n="cat.bady">SUPPLEMENTS</div>
+          <div class="cat-card-sub" data-i18n="cat.bady.sub">Daily health support</div>
+          <span class="cat-card-count" id="cnt-bady">0</span>
+        </button>
+        <button class="cat-card" data-cat="vitamin" onclick="App.filterCatAndScroll('vitamin',this)">
+          <div class="cat-card-icon">
+            <svg viewBox="0 0 32 32" fill="none" width="26" height="26"><polygon points="16,3 20,12 30,12 22,18 25,28 16,22 7,28 10,18 2,12 12,12" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="cat-card-title" data-i18n="cat.vitamin">VITAMINS</div>
+          <div class="cat-card-sub" data-i18n="cat.vitamin.sub">Essential micronutrients</div>
+          <span class="cat-card-count" id="cnt-vitamin">0</span>
+        </button>
+        <button class="cat-card" data-cat="mushroom" onclick="App.filterCatAndScroll('mushroom',this)">
+          <div class="cat-card-icon">
+            <svg viewBox="0 0 32 32" fill="none" width="26" height="26"><path d="M16 4C9 4 4 9 4 14h24C28 9 23 4 16 4z" stroke="currentColor" stroke-width="1.5"/><path d="M11 14v14M21 14v14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M11 28h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div class="cat-card-title" data-i18n="cat.mushroom">MUSHROOMS</div>
+          <div class="cat-card-sub" data-i18n="cat.mushroom.sub">Adaptogenic support</div>
+          <span class="cat-card-count" id="cnt-mushroom">0</span>
+        </button>
+        <button class="cat-card" data-cat="amino" onclick="App.filterCatAndScroll('amino',this)">
+          <div class="cat-card-icon">
+            <svg viewBox="0 0 32 32" fill="none" width="26" height="26"><path d="M4 22L9 10l7 10 7-12 5 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="cat-card-title" data-i18n="cat.amino">AMINO ACIDS</div>
+          <div class="cat-card-sub" data-i18n="cat.amino.sub">Recovery & performance</div>
+          <span class="cat-card-count" id="cnt-amino">0</span>
+        </button>
+        <button class="cat-card cat-card-all" data-cat="all" onclick="App.filterCatAndScroll('all',this)">
+          <div class="cat-card-icon">
+            <svg viewBox="0 0 32 32" fill="none" width="26" height="26"><rect x="4" y="4" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/><rect x="18" y="4" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/><rect x="4" y="18" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/><rect x="18" y="18" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>
+          </div>
+          <div class="cat-card-title" data-i18n="cat.all">VIEW ALL</div>
+          <div class="cat-card-sub" data-i18n="cat.all.sub">Full catalog</div>
+          <span class="cat-card-count" id="cnt-all">0</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ BEST SELLERS / CATALOG ══ -->
+  <section class="catalog-section" id="catalog">
+    <div class="container">
+      <div class="catalog-header">
+        <div>
+          <h2 class="section-title" id="page-title">BEST SELLERS</h2>
+          <p class="catalog-sub" id="page-sub"></p>
+        </div>
+        <div class="catalog-controls">
+          <a href="#" class="see-all" onclick="App.filterCat('all',document.querySelector('[data-cat=\'all\']'));return false;" data-i18n="catalog.viewAll">View All →</a>
+          <select class="sort-select" onchange="App.setSort(this.value)" aria-label="Сортировка">
+            <option value="pop" data-i18n="sort.pop">By Popularity</option>
+            <option value="asc" data-i18n="sort.asc">Price: Low to High</option>
+            <option value="desc" data-i18n="sort.desc">Price: High to Low</option>
+            <option value="disc" data-i18n="sort.disc">By Discount</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Hidden category filter buttons (for JS compatibility) -->
+      <div class="cat-filter-bar">
+        <button class="cat-pill active" data-cat="all" onclick="App.filterCat('all', this)" data-i18n="filter.all">All</button>
+        <button class="cat-pill" data-cat="bady" onclick="App.filterCat('bady', this)" data-i18n="filter.bady">Supplements</button>
+        <button class="cat-pill" data-cat="protein" onclick="App.filterCat('protein', this)" data-i18n="filter.protein">Protein</button>
+        <button class="cat-pill" data-cat="nootropic" onclick="App.filterCat('nootropic', this)" data-i18n="filter.nootropic">Nootropics</button>
+        <button class="cat-pill" data-cat="mushroom" onclick="App.filterCat('mushroom', this)" data-i18n="filter.mushroom">Mushrooms</button>
+        <button class="cat-pill" data-cat="vitamin" onclick="App.filterCat('vitamin', this)" data-i18n="filter.vitamin">Vitamins</button>
+        <button class="cat-pill" data-cat="amino" onclick="App.filterCat('amino', this)" data-i18n="filter.amino">Amino Acids</button>
+        <button class="cat-pill" data-cat="fat" onclick="App.filterCat('fat', this)" data-i18n="filter.fat">Fat Burners</button>
+      </div>
+
+      <!-- Hidden legacy sidebar counts -->
+      <div style="display:none" aria-hidden="true">
+        <span id="cnt-protein">0</span>
+        <span id="cnt-fat">0</span>
+      </div>
+
+      <div class="products-grid" id="grid" role="list"></div>
+    </div>
+  </section>
+
+  <!-- ══ SCIENCE ══ -->
+  <section class="science-section" id="science">
+    <div class="container">
+      <div class="science-inner">
+        <div class="science-left reveal-left">
+          <span class="section-eyebrow" data-i18n="science.eyebrow">WHY MUSTAFA</span>
+          <h2 class="section-title" data-i18n="science.title">Science-Backed<br><em>Formulations</em></h2>
+          <p class="science-desc" data-i18n="science.desc">
+            Every formula is based on peer-reviewed research, manufactured in GMP-certified facilities and verified by independent laboratories.
+          </p>
+          <div class="science-steps">
+            <div class="science-step">
+              <div class="step-num">01</div>
+              <div class="step-body">
+                <div class="step-title" data-i18n="science.step1">Research</div>
+                <div class="step-sub" data-i18n="science.step1.sub">Peer-reviewed studies only</div>
+              </div>
+            </div>
+            <div class="science-step">
+              <div class="step-num">02</div>
+              <div class="step-body">
+                <div class="step-title" data-i18n="science.step2">Formulation</div>
+                <div class="step-sub" data-i18n="science.step2.sub">Precise therapeutic doses</div>
+              </div>
+            </div>
+            <div class="science-step">
+              <div class="step-num">03</div>
+              <div class="step-body">
+                <div class="step-title" data-i18n="science.step3">3rd Party Testing</div>
+                <div class="step-sub" data-i18n="science.step3.sub">Independent lab verification</div>
+              </div>
+            </div>
+            <div class="science-step">
+              <div class="step-num">04</div>
+              <div class="step-body">
+                <div class="step-title" data-i18n="science.step4">Delivery</div>
+                <div class="step-sub" data-i18n="science.step4.sub">Fast & reliable shipping</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="science-right reveal-right">
+          <div class="science-stats">
+            <div class="stat-card">
+              <div class="stat-num">50K+</div>
+              <div class="stat-label" data-i18n="stat.customers">Customers</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">4.9★</div>
+              <div class="stat-label" data-i18n="stat.rating">Average Rating</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">98%</div>
+              <div class="stat-label" data-i18n="stat.reorder">Reorder Rate</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">24h</div>
+              <div class="stat-label" data-i18n="stat.ship">Ships Within</div>
+            </div>
+          </div>
+          <div class="science-gold-line"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ TELEGRAM CTA ══ -->
+  <section class="tg-section" id="about">
+    <div class="container">
+      <div class="tg-inner">
+        <div class="tg-icon">
+          <svg viewBox="0 0 40 40" fill="none" width="36" height="36"><path d="M35 5L3 17l12 5 5 13 5-7 9 7 1-30z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="tg-body">
+          <h3 class="tg-title" data-i18n="tg.title">Join Our Inner Circle</h3>
+          <p class="tg-desc" data-i18n="tg.desc">Exclusive content, early access, biohacking protocols and community support.</p>
+        </div>
+        <a href="https://t.me/mustafa_mentor" target="_blank" rel="noopener" class="btn-primary" data-i18n="tg.btn">Join Telegram</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ FAQ ══ -->
+  <section class="faq-section" id="contact">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-eyebrow" data-i18n="faq.eyebrow">SUPPORT</span>
+        <h2 class="section-title" data-i18n="faq.title">Frequently Asked <em>Questions</em></h2>
+      </div>
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            <span data-i18n="faq.1.q">Are your products lab tested?</span>
+            <svg class="faq-chevron" viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="faq-a"><p data-i18n="faq.1.a">Yes. Every product is independently tested by a certified third-party laboratory for purity, potency and safety before reaching you.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            <span data-i18n="faq.2.q">How long does delivery take?</span>
+            <svg class="faq-chevron" viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="faq-a"><p data-i18n="faq.2.a">Orders ship within 24 hours. Standard delivery takes 3–7 business days depending on your location.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            <span data-i18n="faq.3.q">Can I combine multiple supplements?</span>
+            <svg class="faq-chevron" viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="faq-a"><p data-i18n="faq.3.a">Most of our products are designed to work synergistically. Check our Stacks section for recommended combinations. When in doubt, consult our Telegram community.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            <span data-i18n="faq.4.q">What is your return policy?</span>
+            <svg class="faq-chevron" viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="faq-a"><p data-i18n="faq.4.a">We offer a 30-day money-back guarantee. If you're not satisfied, contact us via Telegram and we'll arrange a full refund.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            <span data-i18n="faq.5.q">Are these supplements safe?</span>
+            <svg class="faq-chevron" viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="faq-a"><p data-i18n="faq.5.a">All products are manufactured in GMP-certified facilities and are free from banned substances. Always consult your physician before starting any new supplement regimen.</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            <span data-i18n="faq.6.q">How do I contact support?</span>
+            <svg class="faq-chevron" viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <div class="faq-a"><p>Contact us via Telegram: <a href="https://t.me/Mustafa_biohacking" target="_blank" rel="noopener">@Mustafa_biohacking</a></p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ NEWSLETTER ══ -->
+  <section class="newsletter-section">
+    <div class="container">
+      <div class="nl-inner">
+        <h3 class="nl-title" data-i18n="nl.title">Join the Inner Circle</h3>
+        <p class="nl-desc" data-i18n="nl.desc">Get exclusive protocols, early product drops and member-only discounts.</p>
+        <form class="nl-form" onsubmit="handleNewsletter(event)">
+          <input type="email" class="nl-input" placeholder="your@email.com" required aria-label="Email">
+          <button type="submit" class="btn-primary" data-i18n="nl.btn">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ── FOOTER ── -->
+<footer class="footer" id="stacks">
+  <div class="container">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <img src="favicon.png" alt="MUSTAFA" width="32" height="32">
+          <div>
+            <div class="footer-logo-name">MUSTAFA</div>
+            <div class="footer-logo-sub">PREMIUM</div>
+          </div>
+        </div>
+        <p class="footer-tagline" data-i18n="footer.tagline">Elevate your biology.<br>Optimize your performance.</p>
+        <a href="https://t.me/mustafa_mentor" target="_blank" rel="noopener" class="footer-tg">
+          <svg viewBox="0 0 20 20" fill="none" width="14" height="14"><path d="M17.5 2.5L1.5 8.5l5 2 2 5.5 2.5-3 4 3 2.5-13.5z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          @mustafa_mentor
+        </a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title" data-i18n="footer.shop">SHOP</div>
+        <a href="#catalog" class="footer-link" data-i18n="footer.all">All Products</a>
+        <a href="#categories" class="footer-link" data-i18n="footer.nootropics">Nootropics</a>
+        <a href="#categories" class="footer-link" data-i18n="footer.vitamins">Vitamins</a>
+        <a href="#categories" class="footer-link" data-i18n="footer.amino">Amino Acids</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title" data-i18n="footer.company">COMPANY</div>
+        <a href="#about" class="footer-link" data-i18n="footer.about">About Us</a>
+        <a href="#science" class="footer-link" data-i18n="footer.science">Science</a>
+        <a href="https://t.me/mustafa_mentor" target="_blank" rel="noopener" class="footer-link">Telegram</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title" data-i18n="footer.support">SUPPORT</div>
+        <a href="#contact" class="footer-link" data-i18n="footer.faq">FAQ</a>
+        <a href="https://t.me/Mustafa_biohacking" target="_blank" rel="noopener" class="footer-link" data-i18n="footer.contact">Contact Us</a>
+        <a href="#" class="footer-link" data-i18n="footer.returns">Returns</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2025 MUSTAFA Premium. All rights reserved.</span>
+      <div class="footer-badges">
+        <span class="footer-badge">LAB TESTED</span>
+        <span class="footer-badge">GMP CERTIFIED</span>
+        <span class="footer-badge">100% SAFE</span>
+      </div>
     </div>
   </div>
-</div>
+</footer>
 
-<!-- ── CART PANEL ── -->
+<!-- ══ CART DRAWER ══ -->
 <div class="overlay" id="overlay-cart" onclick="CartUI.closeOuter(event)" role="dialog" aria-modal="true" aria-label="Корзина">
-  <div class="cart-panel">
-    <div class="cart-header">
-      <h2 class="cart-title">Корзина</h2>
-      <button class="cart-close" onclick="CartUI.close()" aria-label="Закрыть корзину">✕</button>
+  <div class="cart-drawer">
+    <div class="cart-head">
+      <h2 class="cart-title" data-i18n="cart.title">Your Cart</h2>
+      <button class="drawer-close" onclick="CartUI.close()" aria-label="Закрыть">
+        <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M2 2l12 12M14 2L2 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
     </div>
     <div class="cart-items" id="cart-items"></div>
-    <div class="cart-footer hidden" id="cart-footer">
-      <div class="cart-total-row">
-        <span class="cart-total-lbl">Итого</span>
-        <span class="cart-total-val" id="cart-total">0 ₽</span>
-      </div>
-      <p class="pay-label">Способ оплаты</p>
+    <div class="cart-footer" id="cart-footer">
+      <div class="cart-pay-label" data-i18n="cart.pay">Payment method</div>
       <div class="pay-opts">
-        <button class="pay-opt" onclick="CartUI.selectPay('sbp', this)"><span>📱</span>СБП</button>
-        <button class="pay-opt" onclick="CartUI.selectPay('sber', this)"><span>💚</span>SberPay</button>
-        <button class="pay-opt" onclick="CartUI.selectPay('visa', this)"><span>💳</span>Visa</button>
+        <button class="pay-opt" onclick="CartUI.selectPay('sbp',this)">СБП</button>
+        <button class="pay-opt" onclick="CartUI.selectPay('sber',this)">SberPay</button>
+        <button class="pay-opt" onclick="CartUI.selectPay('visa',this)">Visa</button>
       </div>
-      <button class="btn-checkout" onclick="CartUI.checkout()">Оформить заказ →</button>
+      <button class="btn-checkout" onclick="CartUI.checkout()" data-i18n="cart.checkout">Checkout</button>
+      <div class="cart-trust">
+        <span>🔒</span><span data-i18n="cart.trust">Secure & encrypted</span>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- ── TOASTS ── -->
-<div class="toast-wrap" id="toast-wrap" aria-live="polite"></div>
+<!-- ══ SEARCH OVERLAY ══ -->
+<div class="overlay" id="overlay-search" onclick="closeSearch(event)" role="dialog" aria-modal="true" aria-label="Поиск">
+  <div class="search-panel">
+    <div class="search-bar">
+      <svg viewBox="0 0 20 20" fill="none" width="18" height="18"><circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M13 13L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input id="search-input" class="search-input" type="search" placeholder="Search products…" autocomplete="off" oninput="App.search(this.value)" aria-label="Поиск">
+      <button id="search-clear" class="search-clear" onclick="App.clearSearch()" aria-label="Сбросить">
+        <svg viewBox="0 0 12 12" fill="none" width="11" height="11"><path d="M1 1L11 11M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <button class="search-close" onclick="closeSearchPanel()">Close</button>
+  </div>
+</div>
 
-<!-- ── ADMIN BADGE — скрыт, активируется по секретной комбинации ── -->
-<button class="admin-badge hidden" id="admin-badge" onclick="Admin.toggleOrLogin()">
-  <span class="adm-dot" id="adm-dot"></span>
-  <span id="adm-badge-txt">Admin: ВЫКЛ</span>
-</button>
+<!-- ══ PRODUCT MODAL ══ -->
+<div class="overlay" id="overlay-product" onclick="ProductModal.closeOuter(event)" role="dialog" aria-modal="true">
+  <div class="product-modal" id="product-modal-inner">
+    <button class="drawer-close modal-close" onclick="ProductModal.close()" aria-label="Закрыть">
+      <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M2 2l12 12M14 2L2 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </button>
+    <div id="modal-body">
+      <div class="modal-img-wrap">
+        <img id="modal-img" class="modal-img" src="" alt="" style="display:none" loading="lazy">
+        <div id="modal-img-ph" class="modal-img-ph"></div>
+        <div id="modal-disc" class="p-disc modal-disc" style="display:none"></div>
+      </div>
+      <div class="modal-tg-row">
+        <a class="modal-tg" href="https://t.me/Mustafa_biohacking" target="_blank" rel="noopener">
+          <svg viewBox="0 0 18 18" fill="none" width="14" height="14"><path d="M15.5 2.5L1.5 7.5l4.5 1.8 1.8 4.7L10 11l3.5 3 2-11.5z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div><strong>Ask a question</strong><small>@Mustafa_biohacking</small></div>
+        </a>
+      </div>
+      <div id="modal-cat" class="modal-cat"></div>
+      <h2 id="modal-name" class="modal-name"></h2>
+      <div class="modal-price-row">
+        <span id="modal-price" class="modal-price"></span>
+        <span id="modal-oldp" class="modal-oldp hidden"></span>
+        <span id="modal-pct" class="modal-pct hidden"></span>
+      </div>
+      <div id="modal-stock" class="modal-stock"><span id="modal-stock-txt"></span></div>
+      <div id="modal-desc" class="modal-desc"></div>
+      <button id="modal-edit-btn" class="btn-ghost hidden" onclick="ProductModal.edit()" style="margin-bottom:12px;width:100%">Edit Product</button>
+    </div>
+    <div id="modal-add-wrap">
+      <div class="modal-qty-row" id="modal-qty-row">
+        <button class="q-btn minus" onclick="ProductModal.dec()" aria-label="Убрать">−</button>
+        <span id="modal-qty-val">1</span>
+        <button class="q-btn plus" onclick="ProductModal.inc()" aria-label="Добавить">+</button>
+      </div>
+      <button id="modal-add-btn" class="btn-modal-add" onclick="ProductModal.addFromModal()">
+        ADD TO CART
+      </button>
+    </div>
+  </div>
+</div>
 
+<!-- ══ ADMIN PANEL ══ -->
+<div class="overlay" id="overlay-admin" onclick="Admin.closeOuter(event)" role="dialog" aria-modal="true">
+  <div class="admin-panel" id="admin-panel-inner">
+    <div class="admin-head">
+      <h2 class="admin-title" id="form-title">New Product</h2>
+      <button class="drawer-close" onclick="Admin.close()" aria-label="Закрыть">×</button>
+    </div>
+    <form id="admin-form" onsubmit="Admin.save(event)">
+      <div class="admin-field">
+        <label class="admin-label">Name</label>
+        <input id="f-name" class="admin-input" type="text" required placeholder="Product name">
+      </div>
+      <div class="admin-field">
+        <label class="admin-label">Price (₽)</label>
+        <input id="f-price" class="admin-input" type="number" required min="1" placeholder="0">
+      </div>
+      <div class="admin-field">
+        <label class="admin-label">Old Price (₽)</label>
+        <input id="f-oldp" class="admin-input" type="number" min="0" placeholder="0">
+      </div>
+      <div class="admin-field">
+        <label class="admin-label">Stock</label>
+        <input id="f-stock" class="admin-input" type="number" required min="0" placeholder="0">
+      </div>
+      <div class="admin-field">
+        <label class="admin-label">Category</label>
+        <select id="f-cat" class="admin-select">
+          <option value="bady">БАДы</option>
+          <option value="protein">Протеины</option>
+          <option value="nootropic">Ноотропы</option>
+          <option value="mushroom">Грибы</option>
+          <option value="vitamin">Витамины</option>
+          <option value="amino">Аминокислоты</option>
+          <option value="fat">Жиросжигатели</option>
+        </select>
+      </div>
+      <div class="admin-field">
+        <label class="admin-label">Description</label>
+        <textarea id="f-desc" class="admin-input admin-textarea" rows="3" placeholder="Product description"></textarea>
+      </div>
+      <div class="admin-field">
+        <label class="admin-label">Image</label>
+        <input id="f-img" class="admin-input" type="file" accept="image/*">
+        <div class="admin-img-preview" id="admin-img-preview"></div>
+      </div>
+      <div class="admin-actions">
+        <button type="submit" class="btn-primary" id="admin-submit">Save Product</button>
+        <button type="button" class="btn-ghost" onclick="Admin.close()">Cancel</button>
+        <button type="button" class="btn-danger" id="admin-del" onclick="Admin.del()" style="display:none">Delete</button>
+      </div>
+    </form>
+    <div class="admin-stats" id="admin-stats"></div>
+    <div class="admin-login" id="admin-login" style="display:none">
+      <input type="password" id="admin-pass" class="admin-input" placeholder="Password" onkeydown="if(event.key==='Enter')Admin.login()">
+      <button class="btn-primary" onclick="Admin.login()">Login</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ QUIZ ══ -->
+<div class="overlay" id="overlay-quiz" onclick="BioQuiz.closeOuter(event)" role="dialog" aria-modal="true">
+  <div class="quiz-panel" id="quiz-panel-inner">
+    <button class="drawer-close" onclick="BioQuiz.close()" aria-label="Закрыть">
+      <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M2 2l12 12M14 2L2 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </button>
+    <div id="quiz-inner">
+      <div id="quiz-main">
+        <div class="quiz-meta" id="bq-q-meta"></div>
+        <div class="quiz-progress" id="bq-progress-bar">
+          <div class="quiz-progress-fill" id="bq-progress-fill"></div>
+        </div>
+        <h3 class="quiz-question" id="bq-q-title"></h3>
+        <div class="quiz-opts" id="bq-opts"></div>
+        <div class="quiz-nav">
+          <button class="btn-ghost quiz-back" id="bq-back" onclick="BioQuiz.back()">← Back</button>
+        </div>
+      </div>
+      <div id="quiz-result" style="display:none">
+        <div class="quiz-result-head">
+          <h3 class="quiz-result-title" data-i18n="quiz.result">Your Personalized Selection</h3>
+        </div>
+        <div class="bq-result-title-group"></div>
+        <div id="bq-result-cards"></div>
+        <button class="btn-primary" onclick="BioQuiz.close()" style="width:100%;margin-top:16px">View Products</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="config.js"></script>
+<script>
+// ── i18n ──
+const TRANSLATIONS = {
+  ru: {
+    'nav.shop':'МАГАЗИН','nav.stacks':'СТЕКИ','nav.science':'НАУКА','nav.about':'О НАС','nav.contact':'КОНТАКТЫ',
+    'hero.eyebrow':'ПРЕМИАЛЬНЫЕ БИОХАКИНГ ДОБАВКИ',
+    'hero.line1':'Энергия.','hero.line2':'Фокус.','hero.line3':'Контроль.',
+    'hero.desc':'Премиальные ноотропы и добавки для повышения производительности, концентрации и восстановления.',
+    'hero.cta1':'СМОТРЕТЬ КАТАЛОГ','hero.cta2':'ПОДРОБНЕЕ',
+    'trust.1.title':'ПРОВЕРЕНО В ЛАБ','trust.1.sub':'Тестировано третьей стороной',
+    'trust.2.title':'GMP СЕРТИФИКАТ','trust.2.sub':'Высочайшие стандарты',
+    'trust.3.title':'PREMIUM КАЧЕСТВО','trust.3.sub':'Только лучшие ингредиенты',
+    'trust.4.title':'БЫСТРАЯ ДОСТАВКА','trust.4.sub':'Отправка в течение 24ч',
+    'trust.5.title':'TELEGRAM КАНАЛ',
+    'trust.6.title':'100% БЕЗОПАСНО','trust.6.sub':'Безопасно для здоровья',
+    'cats.eyebrow':'ЧТО МЫ ПРЕДЛАГАЕМ','cats.title':'Исследуй категории',
+    'cat.nootropic':'НООТРОПЫ','cat.nootropic.sub':'Фокус и когнитивные функции',
+    'cat.bady':'БАДы','cat.bady.sub':'Ежедневная поддержка здоровья',
+    'cat.vitamin':'ВИТАМИНЫ','cat.vitamin.sub':'Необходимые микроэлементы',
+    'cat.mushroom':'ГРИБЫ','cat.mushroom.sub':'Адаптогенная поддержка',
+    'cat.amino':'АМИНОКИСЛОТЫ','cat.amino.sub':'Восстановление и перформанс',
+    'cat.all':'ВСЕ ТОВАРЫ','cat.all.sub':'Полный каталог',
+    'catalog.viewAll':'Смотреть все →',
+    'sort.pop':'По популярности','sort.asc':'Цена: сначала дешевле','sort.desc':'Цена: сначала дороже','sort.disc':'По скидке',
+    'filter.all':'Все','filter.bady':'БАДы','filter.protein':'Протеины','filter.nootropic':'Ноотропы',
+    'filter.mushroom':'Грибы','filter.vitamin':'Витамины','filter.amino':'Аминокислоты','filter.fat':'Жиросжигатели',
+    'science.eyebrow':'ПОЧЕМУ MUSTAFA','science.title':'Формулы основанные на науке',
+    'science.desc':'Каждая формула основана на peer-reviewed исследованиях, производится на GMP-сертифицированных предприятиях и проверяется независимыми лабораториями.',
+    'science.step1':'Исследования','science.step1.sub':'Только рецензируемые работы',
+    'science.step2':'Формулировка','science.step2.sub':'Точные терапевтические дозы',
+    'science.step3':'Тестирование','science.step3.sub':'Независимая лабораторная проверка',
+    'science.step4':'Доставка','science.step4.sub':'Быстрая и надёжная доставка',
+    'stat.customers':'Клиентов','stat.rating':'Средний рейтинг','stat.reorder':'Процент повторных заказов','stat.ship':'Отправка',
+    'tg.title':'Присоединяйся','tg.desc':'Эксклюзивный контент, ранний доступ, протоколы биохакинга и поддержка сообщества.','tg.btn':'Telegram канал',
+    'faq.eyebrow':'ПОДДЕРЖКА','faq.title':'Часто задаваемые вопросы',
+    'faq.1.q':'Ваши продукты протестированы в лаборатории?','faq.1.a':'Да. Каждый продукт независимо тестируется сертифицированной лабораторией на чистоту, эффективность и безопасность.',
+    'faq.2.q':'Как долго идёт доставка?','faq.2.a':'Заказы отправляются в течение 24 часов. Стандартная доставка 3–7 рабочих дней.',
+    'faq.3.q':'Можно ли комбинировать добавки?','faq.3.a':'Большинство наших продуктов разработаны для синергетической работы. Ознакомьтесь с разделом Стеки для рекомендуемых комбинаций.',
+    'faq.4.q':'Какова ваша политика возврата?','faq.4.a':'30-дневная гарантия возврата денег. Если не удовлетворены — свяжитесь через Telegram.',
+    'faq.5.q':'Эти добавки безопасны?','faq.5.a':'Все продукты производятся на GMP-сертифицированных предприятиях и не содержат запрещённых веществ.',
+    'faq.6.q':'Как связаться с поддержкой?',
+    'nl.title':'Стань частью сообщества','nl.desc':'Эксклюзивные протоколы, ранний доступ и скидки только для участников.','nl.btn':'Подписаться',
+    'footer.tagline':'Улучши свою биологию.\nОптимизируй свою производительность.',
+    'footer.shop':'МАГАЗИН','footer.all':'Все товары','footer.nootropics':'Ноотропы','footer.vitamins':'Витамины','footer.amino':'Аминокислоты',
+    'footer.company':'КОМПАНИЯ','footer.about':'О нас','footer.science':'Наука',
+    'footer.support':'ПОДДЕРЖКА','footer.faq':'Вопросы и ответы','footer.contact':'Контакты','footer.returns':'Возврат',
+    'cart.title':'Ваша корзина','cart.pay':'Способ оплаты','cart.checkout':'Оформить заказ','cart.trust':'Безопасная оплата',
+    'modal.add':'ДОБАВИТЬ В КОРЗИНУ',
+    'quiz.result':'Ваш персональный подбор',
+  },
+  en: {}
+};
+
+const I18n = (() => {
+  let lang = localStorage.getItem('mu_lang') || 'ru';
+
+  function set(l, btn) {
+    lang = l;
+    localStorage.setItem('mu_lang', l);
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll(`.lang-btn[data-lang="${l}"]`).forEach(b => b.classList.add('active'));
+    apply();
+  }
+
+  function t(key) {
+    return (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) || (TRANSLATIONS['ru'][key]) || key;
+  }
+
+  function apply() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      const val = t(key);
+      if (val) el.textContent = val;
+    });
+  }
+
+  function init() {
+    document.querySelectorAll(`.lang-btn[data-lang="${lang}"]`).forEach(b => b.classList.add('active'));
+    apply();
+  }
+
+  return { set, t, init };
+})();
+
+// ── FAQ toggle ──
+function toggleFaq(btn) {
+  const item = btn.closest('.faq-item');
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+// ── Mobile menu ──
+function toggleMobileMenu() {
+  document.getElementById('mobile-menu').classList.toggle('open');
+  document.getElementById('mm-overlay').classList.toggle('show');
+  document.getElementById('hamburger').classList.toggle('open');
+  document.body.classList.toggle('no-scroll');
+}
+function closeMobileMenu() {
+  document.getElementById('mobile-menu').classList.remove('open');
+  document.getElementById('mm-overlay').classList.remove('show');
+  document.getElementById('hamburger').classList.remove('open');
+  document.body.classList.remove('no-scroll');
+}
+
+// ── Search ──
+document.getElementById('btn-search-open').addEventListener('click', () => {
+  document.getElementById('overlay-search').classList.add('show');
+  setTimeout(() => document.getElementById('search-input').focus(), 100);
+});
+function closeSearch(e) {
+  if (e.target === document.getElementById('overlay-search')) closeSearchPanel();
+}
+function closeSearchPanel() {
+  document.getElementById('overlay-search').classList.remove('show');
+}
+
+// ── Navbar scroll ──
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 60);
+});
+
+// ── Newsletter ──
+function handleNewsletter(e) {
+  e.preventDefault();
+  const btn = e.target.querySelector('button');
+  btn.textContent = '✓ Subscribed!';
+  btn.disabled = true;
+  setTimeout(() => { btn.textContent = I18n.t('nl.btn') || 'Subscribe'; btn.disabled = false; }, 3000);
+}
+
+// ── Overlay compatibility shims (map old IDs to new overlay-admin) ──
+// Adds invisible proxy elements for overlay-login, overlay-form, overlay-quiz (BioQuiz)
+['overlay-login','overlay-form'].forEach(id => {
+  if (!document.getElementById(id)) {
+    const el = document.createElement('div');
+    el.id = id;
+    el.style.display = 'none';
+    document.body.appendChild(el);
+  }
+});
+
+// Patch openOverlay/closeOverlay after script.js loads
+document.addEventListener('DOMContentLoaded', () => {
+  const _open  = window.openOverlay;
+  const _close = window.closeOverlay;
+  if (_open && _close) {
+    window.openOverlay = function(id) {
+      if (id === 'overlay-login' || id === 'overlay-form') {
+        _open('overlay-admin');
+        const loginEl = document.getElementById('admin-login');
+        const formEl  = document.getElementById('admin-form');
+        if (id === 'overlay-login') {
+          if (loginEl) loginEl.style.display = '';
+          if (formEl)  formEl.style.display  = 'none';
+          const pw = document.getElementById('admin-pass');
+          if (pw) { pw.value = ''; setTimeout(() => pw.focus(), 60); }
+        } else {
+          if (loginEl) loginEl.style.display = 'none';
+          if (formEl)  formEl.style.display  = '';
+        }
+      } else {
+        _open(id);
+      }
+    };
+    window.closeOverlay = function(id) {
+      if (id === 'overlay-login' || id === 'overlay-form') {
+        _close('overlay-admin');
+      } else {
+        _close(id);
+      }
+    };
+  }
+});
+
+// ── Init ──
+document.addEventListener('DOMContentLoaded', () => {
+  I18n.init();
+});
+</script>
 <script type="module" src="script.js"></script>
 </body>
 </html>
