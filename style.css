@@ -258,7 +258,7 @@ input, select, textarea { font: inherit; }
   max-width: 1280px;
   margin: 0 auto;
   padding: 0 24px;
-  height: 68px;
+  height: 80px;
   display: flex;
   align-items: center;
   gap: 32px;
@@ -274,9 +274,9 @@ input, select, textarea { font: inherit; }
 }
 .nav-logo:hover { opacity: 0.85; }
 .nav-logo-img-wrap {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
   overflow: hidden;
   border: 1px solid var(--border2);
   background: var(--gold-b);
@@ -285,21 +285,21 @@ input, select, textarea { font: inherit; }
   justify-content: center;
   flex-shrink: 0;
 }
-.nav-logo-img { width: 28px; height: 28px; object-fit: contain; }
+.nav-logo-img { width: 34px; height: 34px; object-fit: contain; }
 .nav-logo-text { display: flex; flex-direction: column; line-height: 1; }
 .nav-logo-brand {
   font-family: 'Playfair Display', serif;
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--text);
-  letter-spacing: 0.5px;
+  letter-spacing: 0.15em;
 }
 .nav-logo-sub {
-  font-size: 8.5px;
-  letter-spacing: 2.5px;
+  font-size: 9px;
+  letter-spacing: 0.3em;
   color: var(--gold);
   text-transform: uppercase;
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
 /* Nav links */
@@ -436,7 +436,7 @@ input, select, textarea { font: inherit; }
 /* ── MOBILE MENU ── */
 .mobile-menu {
   position: fixed;
-  top: 68px; left: 0; right: 0; bottom: 0;
+  top: 80px; left: 0; right: 0; bottom: 0;
   z-index: 999;
   background: var(--bg1);
   border-top: 1px solid var(--border);
@@ -480,9 +480,7 @@ input, select, textarea { font: inherit; }
 /* ── HERO ── */
 .hero {
   position: relative;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
+  height: 100vh;
   overflow: hidden;
 }
 .hero-bg {
@@ -495,51 +493,51 @@ input, select, textarea { font: inherit; }
   inset: 0;
   background: radial-gradient(ellipse at 65% 50%, rgba(201,169,110,0.07) 0%, transparent 65%);
 }
+/* Full-bleed 50/50 grid — overrides .container max-width inside hero */
 .hero-content {
   position: relative;
   z-index: 1;
-  padding-top: 120px;
-  padding-bottom: 80px;
-  display: flex;
-  align-items: center;
-  gap: 60px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 100%;
   width: 100%;
+  max-width: none;
+  padding: 0;
+  margin: 0;
 }
 .hero-left {
-  flex: 1;
-  max-width: 52%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 120px clamp(40px, 4vw, 80px) 80px clamp(24px, 7vw, 130px);
 }
 .hero-right {
-  flex: 1;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 .hero-product-glow {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 70%;
-  height: 70%;
-  background: radial-gradient(circle, rgba(201,169,110,0.14), transparent 70%);
-  border-radius: 50%;
-  z-index: 0;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(201,169,110,0.10) 0%, transparent 65%);
   pointer-events: none;
+  z-index: 0;
 }
 .hero-product-img {
-  max-width: 560px;
-  width: 100%;
+  max-height: 90vh;
+  max-width: 100%;
+  width: auto;
   object-fit: contain;
   position: relative;
   z-index: 1;
-  filter: drop-shadow(0 20px 60px rgba(201,169,110,0.22)) drop-shadow(0 0 120px rgba(201,169,110,0.10));
+  filter: drop-shadow(0 20px 60px rgba(201,169,110,0.20));
   animation: hero-float 5s ease-in-out infinite;
 }
 @keyframes hero-float {
   0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-14px); }
+  50%       { transform: translateY(-12px); }
 }
 .hero-eyebrow {
   display: flex;
@@ -738,15 +736,7 @@ input, select, textarea { font: inherit; }
   line-height: 1.4;
 }
 .cat-card-count {
-  position: absolute;
-  top: 14px; right: 14px;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--gold);
-  background: var(--gold-a);
-  border: 1px solid var(--border);
-  padding: 2px 7px;
-  border-radius: 20px;
+  display: none;
 }
 .cat-card-all {
   background: var(--gold-b);
@@ -1764,10 +1754,10 @@ input, select, textarea { font: inherit; }
 }
 @media (max-width: 768px) {
   .container { padding: 0 16px; }
-  .hero-content { flex-direction: column; gap: 36px; padding-top: 100px; }
-  .hero-left { max-width: 100%; }
-  .hero-right { justify-content: center; width: 100%; }
-  .hero-product-img { max-width: 320px; }
+  .hero-content { grid-template-columns: 1fr; }
+  .hero-left { padding: 100px 24px 40px; max-width: 100%; }
+  .hero-right { height: 50vh; }
+  .hero-product-img { max-height: 45vh; max-width: 280px; }
   .hero-title { font-size: clamp(40px, 10vw, 60px); }
   .hero-ctas { flex-direction: column; align-items: flex-start; }
   .cats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }

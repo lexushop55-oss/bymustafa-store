@@ -241,6 +241,7 @@ const State = (() => {
     products:    [],           // loaded from Firestore
     cart:        Store.loadCart(),
     adminMode:   false,
+    bestSellersMode: true,    // homepage shows only 6 best sellers, no filter bar
     editingId:   null,         // Firestore doc id string or null
     modalId:     null,
     curCat:      'all',
@@ -344,6 +345,9 @@ function getFiltered() {
     case 'name':       list.sort((a, b) => a.name.localeCompare(b.name, 'ru'));            break;
     case 'avail':      list.sort((a, b) => (b.inStock ? 1 : 0) - (a.inStock ? 1 : 0));   break;
     case 'new':        list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));      break;
+  }
+  if (State.bestSellersMode && State.curCat === 'all' && !State.searchQ) {
+    list = list.slice(0, 6);
   }
   return list;
 }
@@ -462,10 +466,25 @@ const UI = (() => {
     const grid = document.getElementById('grid');
     if (!grid) return;
 
+    const isBestSellers = State.bestSellersMode && State.curCat === 'all' && !State.searchQ;
+
+    // Show/hide filter bar — only in full catalog mode
+    const filterBar = document.querySelector('.cat-filter-bar');
+    if (filterBar) filterBar.style.display = isBestSellers ? 'none' : '';
+
+    // Show "View All" only in best sellers mode; hide in full catalog
+    const seeAll = document.querySelector('.see-all');
+    if (seeAll) seeAll.style.display = isBestSellers ? '' : 'none';
+
     const name  = CAT_NAMES[State.curCat] || 'Каталог';
     const count = list.length;
-    setEl('page-title', name);
-    setEl('page-sub',   `${count} ${plural(count, 'товар', 'товара', 'товаров')}${State.searchQ ? ` · «${State.searchQ}»` : ''}`);
+    if (isBestSellers) {
+      setEl('page-title', 'BEST SELLERS');
+      setEl('page-sub', '');
+    } else {
+      setEl('page-title', name);
+      setEl('page-sub', `${count} ${plural(count, 'товар', 'товара', 'товаров')}${State.searchQ ? ` · «${State.searchQ}»` : ''}`);
+    }
 
     if (!count) {
       grid.innerHTML = renderEmpty();
@@ -1068,6 +1087,7 @@ const App = (() => {
 
   function filterCat(cat, el) {
     State.curCat = cat;
+    State.bestSellersMode = false;
     document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
     if (el) {
       el.classList.add('active');
@@ -1076,6 +1096,14 @@ const App = (() => {
       if (btn) btn.classList.add('active');
     }
     UI.render();
+  }
+
+  function filterCatAndScroll(cat, el) {
+    filterCat(cat, el);
+    setTimeout(() => {
+      const catalog = document.getElementById('catalog');
+      if (catalog) catalog.scrollIntoView({ behavior: 'smooth' });
+    }, 50);
   }
 
   function search(val) {
@@ -1100,11 +1128,12 @@ const App = (() => {
   }
 
   function goHome() {
-    filterCat('all', document.querySelector('[data-cat="all"]'));
+    State.bestSellersMode = true;
+    State.curCat = 'all';
     clearSearch();
   }
 
-  return { filterCat, search, clearSearch, setSort, goHome };
+  return { filterCat, filterCatAndScroll, search, clearSearch, setSort, goHome };
 })();
 
 /* ============================================================
