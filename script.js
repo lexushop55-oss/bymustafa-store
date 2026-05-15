@@ -268,7 +268,7 @@ const State = (() => {
 // Пароль хранится как SHA-256 хеш — в коде нет открытого пароля
 // Текущий пароль: mustafa2024 → чтобы сменить, запусти в консоли:
 // hashPassword('новый_пароль').then(h => console.log(h))
-const ADMIN_PASS_HASH = '3ca6f942ed4c734863c3f7b0dba0f0dd7bf4fe8ca562fd5afcecfaffab8d73ec';
+const ADMIN_PASS_HASH = '1702bda60da6c88814d38a49e19bbdde7353b51905e2d1650045b7895a12c109';
 
 async function hashPassword(pw) {
   const enc = new TextEncoder().encode(pw);
