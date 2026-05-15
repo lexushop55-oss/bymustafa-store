@@ -513,27 +513,28 @@ input, select, textarea { font: inherit; }
 }
 .hero-right {
   position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  background: transparent;
 }
+/* Left edge fade — clean separation from text column */
 .hero-right::before {
   content: '';
   position: absolute;
   top: 0; left: 0;
-  width: 22%;
+  width: 18%;
   height: 100%;
-  background: linear-gradient(to right, #0A0A0A 0%, transparent 100%);
+  background: linear-gradient(to right, #0A0A0A 30%, transparent 100%);
   z-index: 2;
   pointer-events: none;
 }
+/* Bottom fade — blends with trust bar */
 .hero-right::after {
   content: '';
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  height: 18%;
+  height: 15%;
   background: linear-gradient(to top, #0A0A0A 0%, transparent 100%);
   z-index: 2;
   pointer-events: none;
@@ -541,18 +542,17 @@ input, select, textarea { font: inherit; }
 .hero-product-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at center, rgba(201,169,110,0.10) 0%, transparent 65%);
+  background: radial-gradient(circle at 60% 60%, rgba(201,169,110,0.08) 0%, transparent 60%);
   pointer-events: none;
   z-index: 0;
 }
 .hero-product-img {
-  max-height: 90vh;
-  max-width: 100%;
-  width: auto;
+  width: 100%;
+  height: auto;
   object-fit: contain;
   position: relative;
   z-index: 1;
-  filter: drop-shadow(0 20px 60px rgba(201,169,110,0.20));
+  filter: drop-shadow(0 0 40px rgba(201,169,110,0.15));
   animation: hero-float 5s ease-in-out infinite;
 }
 @keyframes hero-float {
