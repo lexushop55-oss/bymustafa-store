@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400;1,700&family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=21">
+  <link rel="stylesheet" href="style.css?v=22">
 </head>
 <body>
 
@@ -26,6 +26,12 @@
       <strong class="logo-brand">MUSTAFA</strong>
       <span class="logo-tag">BIOHACKING</span>
     </div>
+  </button>
+
+  <button class="btn-hamburger" id="btn-hamburger" onclick="MobileNav.toggle()" aria-label="Меню">
+    <span></span>
+    <span></span>
+    <span></span>
   </button>
 
   <div class="search-wrap">
@@ -68,6 +74,9 @@
 
 <!-- ── LAYOUT ── -->
 <div class="layout">
+
+  <!-- Mobile sidebar backdrop -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="MobileNav.close()"></div>
 
   <!-- Sidebar -->
   <nav class="sidebar" id="sidebar" aria-label="Категории">
@@ -161,222 +170,6 @@
         <div class="hcb-fog2"></div>
         <div class="hcb-grid"></div>
         <div class="hcb-vignette"></div>
-      </div>
-
-      <!-- REMOVED: SVG body replaced by cinematic product bg -->
-      <div class="hero-center-body" aria-hidden="true" style="display:none">
-        <!-- DNA strands background -->
-        <div class="hcb-dna-strands">
-          <svg class="hcb-dna-svg" viewBox="0 0 200 500" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M30 0 Q90 50 30 100 Q-30 150 30 200 Q90 250 30 300 Q-30 350 30 400 Q90 450 30 500" stroke="rgba(168,255,62,0.18)" stroke-width="1.2" fill="none"/>
-            <path d="M170 0 Q110 50 170 100 Q230 150 170 200 Q110 250 170 300 Q230 350 170 400 Q110 450 170 500" stroke="rgba(168,255,62,0.18)" stroke-width="1.2" fill="none"/>
-            <line x1="30" y1="25" x2="170" y2="75" stroke="rgba(168,255,62,0.10)" stroke-width="0.8"/>
-            <line x1="30" y1="75" x2="170" y2="25" stroke="rgba(168,255,62,0.10)" stroke-width="0.8"/>
-            <line x1="30" y1="125" x2="170" y2="175" stroke="rgba(168,255,62,0.10)" stroke-width="0.8"/>
-            <line x1="30" y1="175" x2="170" y2="125" stroke="rgba(168,255,62,0.10)" stroke-width="0.8"/>
-            <line x1="30" y1="225" x2="170" y2="275" stroke="rgba(168,255,62,0.10)" stroke-width="0.8"/>
-            <line x1="30" y1="275" x2="170" y2="225" stroke="rgba(168,255,62,0.10)" stroke-width="0.8"/>
-            <line x1="30" y1="325" x2="170" y2="375" stroke="rgba(168,255,62,0.10)" stroke-width="0.8"/>
-            <line x1="30" y1="375" x2="170" y2="325" stroke="rgba(168,255,62,0.10)" stroke-width="0.8"/>
-            <circle cx="30" cy="25" r="2.5" fill="rgba(168,255,62,0.5)"/>
-            <circle cx="170" cy="75" r="2.5" fill="rgba(168,255,62,0.5)"/>
-            <circle cx="30" cy="125" r="2.5" fill="rgba(168,255,62,0.5)"/>
-            <circle cx="170" cy="175" r="2.5" fill="rgba(168,255,62,0.5)"/>
-            <circle cx="30" cy="225" r="2.5" fill="rgba(168,255,62,0.5)"/>
-            <circle cx="170" cy="275" r="2.5" fill="rgba(168,255,62,0.5)"/>
-          </svg>
-        </div>
-        <!-- Holographic rings -->
-        <div class="hcb-rings">
-          <div class="hcb-ring hcb-ring1"></div>
-          <div class="hcb-ring hcb-ring2"></div>
-          <div class="hcb-ring hcb-ring3"></div>
-          <div class="hcb-ring-floor"></div>
-        </div>
-        <!-- Ground energy platform -->
-        <div class="hcb-platform"></div>
-        <!-- Cybernetic human body SVG -->
-        <div class="hcb-body-container">
-          <svg class="hcb-body-svg" viewBox="0 0 180 460" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Volumetric glow behind body -->
-            <defs>
-              <radialGradient id="bodyGlow" cx="50%" cy="45%" r="50%">
-                <stop offset="0%" stop-color="rgba(168,255,62,0.18)"/>
-                <stop offset="60%" stop-color="rgba(168,255,62,0.04)"/>
-                <stop offset="100%" stop-color="transparent"/>
-              </radialGradient>
-              <radialGradient id="chestGlow" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="rgba(168,255,62,0.9)"/>
-                <stop offset="40%" stop-color="rgba(168,255,62,0.4)"/>
-                <stop offset="100%" stop-color="transparent"/>
-              </radialGradient>
-              <radialGradient id="skinGrad" cx="50%" cy="30%" r="60%">
-                <stop offset="0%" stop-color="rgba(30,40,30,0.9)"/>
-                <stop offset="100%" stop-color="rgba(8,12,8,0.95)"/>
-              </radialGradient>
-              <filter id="bodyBlur">
-                <feGaussianBlur stdDeviation="2"/>
-              </filter>
-              <filter id="glowFilter">
-                <feGaussianBlur stdDeviation="3" result="blur"/>
-                <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-              </filter>
-            </defs>
-
-            <!-- Body glow backdrop -->
-            <ellipse cx="90" cy="210" rx="85" ry="200" fill="url(#bodyGlow)"/>
-
-            <!-- HEAD — cybernetic -->
-            <ellipse cx="90" cy="52" rx="32" ry="38" fill="url(#skinGrad)" stroke="rgba(168,255,62,0.5)" stroke-width="0.8"/>
-            <!-- Face features -->
-            <ellipse cx="90" cy="48" rx="28" ry="32" fill="rgba(20,28,20,0.6)"/>
-            <!-- Eyes glow -->
-            <ellipse cx="78" cy="44" rx="5" ry="3.5" fill="rgba(168,255,62,0.15)" stroke="rgba(168,255,62,0.6)" stroke-width="0.6"/>
-            <ellipse cx="102" cy="44" rx="5" ry="3.5" fill="rgba(168,255,62,0.15)" stroke="rgba(168,255,62,0.6)" stroke-width="0.6"/>
-            <ellipse cx="78" cy="44" rx="2.5" ry="2" fill="rgba(168,255,62,0.8)"/>
-            <ellipse cx="102" cy="44" rx="2.5" ry="2" fill="rgba(168,255,62,0.8)"/>
-            <!-- Skull circuit lines -->
-            <path d="M65 35 L75 30 M115 35 L105 30" stroke="rgba(168,255,62,0.25)" stroke-width="0.6"/>
-            <path d="M72 25 L90 20 L108 25" stroke="rgba(168,255,62,0.2)" stroke-width="0.5" stroke-dasharray="2 2"/>
-            <!-- Head looking up - tilt suggestion -->
-            <path d="M80 68 Q90 72 100 68" stroke="rgba(168,255,62,0.2)" stroke-width="0.7" stroke-linecap="round"/>
-
-            <!-- NECK -->
-            <path d="M78 88 L82 110 L98 110 L102 88" fill="rgba(15,22,15,0.9)" stroke="rgba(168,255,62,0.3)" stroke-width="0.7"/>
-            <!-- Neck circuits -->
-            <path d="M83 93 L83 105 M97 93 L97 105" stroke="rgba(168,255,62,0.2)" stroke-width="0.5"/>
-
-            <!-- SHOULDERS & TORSO — biomechanical -->
-            <!-- Left shoulder plate -->
-            <path d="M58 115 Q45 120 38 135 Q35 148 40 158 L52 155 L60 140 L62 120 Z" fill="rgba(18,26,18,0.95)" stroke="rgba(168,255,62,0.4)" stroke-width="0.8"/>
-            <!-- Right shoulder plate -->
-            <path d="M122 115 Q135 120 142 135 Q145 148 140 158 L128 155 L120 140 L118 120 Z" fill="rgba(18,26,18,0.95)" stroke="rgba(168,255,62,0.4)" stroke-width="0.8"/>
-
-            <!-- Torso main -->
-            <path d="M60 112 Q58 115 56 130 L52 190 Q52 215 56 230 L60 260 L120 260 L124 230 Q128 215 128 190 L124 130 Q122 115 120 112 Z" fill="rgba(14,20,14,0.95)" stroke="rgba(168,255,62,0.35)" stroke-width="0.8"/>
-
-            <!-- Chest armor plates -->
-            <path d="M68 120 L75 115 L90 113 L105 115 L112 120 L110 145 L90 148 L70 145 Z" fill="rgba(22,32,22,0.9)" stroke="rgba(168,255,62,0.5)" stroke-width="0.7"/>
-            <!-- Sub chest plates -->
-            <path d="M70 150 L90 148 L110 150 L108 175 L90 178 L72 175 Z" fill="rgba(18,26,18,0.8)" stroke="rgba(168,255,62,0.3)" stroke-width="0.6"/>
-            <path d="M72 178 L90 176 L108 178 L106 200 L90 202 L74 200 Z" fill="rgba(15,22,15,0.8)" stroke="rgba(168,255,62,0.25)" stroke-width="0.5"/>
-
-            <!-- CHEST ENERGY CORE — main glow -->
-            <circle cx="90" cy="132" r="12" fill="rgba(168,255,62,0.06)" stroke="rgba(168,255,62,0.5)" stroke-width="0.8"/>
-            <circle cx="90" cy="132" r="8" fill="rgba(168,255,62,0.12)" stroke="rgba(168,255,62,0.7)" stroke-width="0.8" class="hcb-core-ring"/>
-            <circle cx="90" cy="132" r="5" fill="rgba(168,255,62,0.5)" class="hcb-core-inner"/>
-            <circle cx="90" cy="132" r="2.5" fill="rgba(168,255,62,1)" class="hcb-core-bright"/>
-            <!-- Core glow rays -->
-            <line x1="90" y1="115" x2="90" y2="110" stroke="rgba(168,255,62,0.4)" stroke-width="0.8"/>
-            <line x1="90" y1="149" x2="90" y2="154" stroke="rgba(168,255,62,0.4)" stroke-width="0.8"/>
-            <line x1="73" y1="132" x2="68" y2="132" stroke="rgba(168,255,62,0.4)" stroke-width="0.8"/>
-            <line x1="107" y1="132" x2="112" y2="132" stroke="rgba(168,255,62,0.4)" stroke-width="0.8"/>
-
-            <!-- ENERGY VEINS — neon circuit lines -->
-            <!-- Left chest vein -->
-            <path d="M78 132 Q68 145 62 165 Q58 185 60 210 Q62 235 64 255" stroke="rgba(168,255,62,0.35)" stroke-width="1" fill="none" stroke-dasharray="3 2" class="hcb-vein"/>
-            <!-- Right chest vein -->
-            <path d="M102 132 Q112 145 118 165 Q122 185 120 210 Q118 235 116 255" stroke="rgba(168,255,62,0.35)" stroke-width="1" fill="none" stroke-dasharray="3 2" class="hcb-vein"/>
-            <!-- Central spine vein -->
-            <path d="M90 148 L90 175 L90 202 L90 230 L90 260" stroke="rgba(168,255,62,0.3)" stroke-width="1" fill="none"/>
-            <!-- Horizontal ribs veins -->
-            <path d="M72 158 Q82 155 90 156 Q98 155 108 158" stroke="rgba(168,255,62,0.2)" stroke-width="0.6" fill="none"/>
-            <path d="M72 170 Q82 167 90 168 Q98 167 108 170" stroke="rgba(168,255,62,0.2)" stroke-width="0.6" fill="none"/>
-            <path d="M70 182 Q80 179 90 180 Q100 179 110 182" stroke="rgba(168,255,62,0.15)" stroke-width="0.5" fill="none"/>
-            <path d="M68 194 Q79 191 90 192 Q101 191 112 194" stroke="rgba(168,255,62,0.15)" stroke-width="0.5" fill="none"/>
-
-            <!-- LEFT ARM -->
-            <path d="M56 130 Q44 145 38 170 Q34 195 36 215 Q38 230 42 238" fill="rgba(14,20,14,0.9)" stroke="rgba(168,255,62,0.3)" stroke-width="0.7"/>
-            <!-- Left forearm -->
-            <path d="M42 238 Q40 255 38 270 Q36 285 38 295 L42 300 L52 298 Q56 285 56 268 Q54 250 52 238 Z" fill="rgba(16,22,16,0.9)" stroke="rgba(168,255,62,0.3)" stroke-width="0.7"/>
-            <!-- Left hand -->
-            <path d="M38 295 Q36 305 37 312 Q40 318 46 316 Q50 312 52 305 Q54 298 50 296" fill="rgba(18,26,18,0.8)" stroke="rgba(168,255,62,0.25)" stroke-width="0.6"/>
-            <!-- Left arm vein -->
-            <path d="M48 145 Q42 165 38 190 Q36 215 38 235" stroke="rgba(168,255,62,0.25)" stroke-width="0.7" fill="none" stroke-dasharray="2 3"/>
-
-            <!-- RIGHT ARM -->
-            <path d="M124 130 Q136 145 142 170 Q146 195 144 215 Q142 230 138 238" fill="rgba(14,20,14,0.9)" stroke="rgba(168,255,62,0.3)" stroke-width="0.7"/>
-            <!-- Right forearm -->
-            <path d="M138 238 Q140 255 142 270 Q144 285 142 295 L138 300 L128 298 Q124 285 124 268 Q126 250 128 238 Z" fill="rgba(16,22,16,0.9)" stroke="rgba(168,255,62,0.3)" stroke-width="0.7"/>
-            <!-- Right hand -->
-            <path d="M142 295 Q144 305 143 312 Q140 318 134 316 Q130 312 128 305 Q126 298 130 296" fill="rgba(18,26,18,0.8)" stroke="rgba(168,255,62,0.25)" stroke-width="0.6"/>
-            <!-- Right arm vein -->
-            <path d="M132 145 Q138 165 142 190 Q144 215 142 235" stroke="rgba(168,255,62,0.25)" stroke-width="0.7" fill="none" stroke-dasharray="2 3"/>
-
-            <!-- PELVIS / WAIST -->
-            <path d="M60 258 Q58 268 58 278 L62 290 L118 290 L122 278 Q122 268 120 258 Z" fill="rgba(16,22,16,0.9)" stroke="rgba(168,255,62,0.28)" stroke-width="0.7"/>
-            <!-- Hip plates -->
-            <path d="M60 270 L62 290 L78 295 L80 272 Z" fill="rgba(20,28,20,0.8)" stroke="rgba(168,255,62,0.25)" stroke-width="0.5"/>
-            <path d="M120 270 L118 290 L102 295 L100 272 Z" fill="rgba(20,28,20,0.8)" stroke="rgba(168,255,62,0.25)" stroke-width="0.5"/>
-
-            <!-- LEFT LEG -->
-            <path d="M62 290 L58 340 Q56 370 58 395 L62 420 L80 420 L82 395 Q82 370 80 340 L78 290 Z" fill="rgba(14,20,14,0.92)" stroke="rgba(168,255,62,0.3)" stroke-width="0.7"/>
-            <!-- Left knee plate -->
-            <ellipse cx="70" cy="360" rx="12" ry="8" fill="rgba(22,32,22,0.9)" stroke="rgba(168,255,62,0.4)" stroke-width="0.7"/>
-            <ellipse cx="70" cy="360" rx="6" ry="4" fill="rgba(168,255,62,0.08)" stroke="rgba(168,255,62,0.5)" stroke-width="0.5"/>
-            <!-- Left leg vein -->
-            <path d="M70 295 L70 345 M68 295 Q64 320 64 350" stroke="rgba(168,255,62,0.22)" stroke-width="0.6" fill="none"/>
-            <!-- Left shin -->
-            <path d="M62 398 Q62 415 64 430 Q66 440 70 445 L76 445 Q80 440 80 430 Q80 415 80 398" fill="rgba(16,22,16,0.9)" stroke="rgba(168,255,62,0.25)" stroke-width="0.6"/>
-            <!-- Left foot -->
-            <path d="M64 440 Q62 452 60 458 Q64 462 72 460 Q76 456 78 450 L80 440" fill="rgba(18,26,18,0.85)" stroke="rgba(168,255,62,0.2)" stroke-width="0.6"/>
-
-            <!-- RIGHT LEG -->
-            <path d="M118 290 L122 340 Q124 370 122 395 L118 420 L100 420 L98 395 Q98 370 100 340 L102 290 Z" fill="rgba(14,20,14,0.92)" stroke="rgba(168,255,62,0.3)" stroke-width="0.7"/>
-            <!-- Right knee plate -->
-            <ellipse cx="110" cy="360" rx="12" ry="8" fill="rgba(22,32,22,0.9)" stroke="rgba(168,255,62,0.4)" stroke-width="0.7"/>
-            <ellipse cx="110" cy="360" rx="6" ry="4" fill="rgba(168,255,62,0.08)" stroke="rgba(168,255,62,0.5)" stroke-width="0.5"/>
-            <!-- Right leg vein -->
-            <path d="M110 295 L110 345 M112 295 Q116 320 116 350" stroke="rgba(168,255,62,0.22)" stroke-width="0.6" fill="none"/>
-            <!-- Right shin -->
-            <path d="M118 398 Q118 415 116 430 Q114 440 110 445 L104 445 Q100 440 100 430 Q100 415 100 398" fill="rgba(16,22,16,0.9)" stroke="rgba(168,255,62,0.25)" stroke-width="0.6"/>
-            <!-- Right foot -->
-            <path d="M116 440 Q118 452 120 458 Q116 462 108 460 Q104 456 102 450 L100 440" fill="rgba(18,26,18,0.85)" stroke="rgba(168,255,62,0.2)" stroke-width="0.6"/>
-
-            <!-- BODY SHADOW overlay -->
-            <path d="M58 112 Q38 140 34 190 Q32 240 38 280 Q44 320 52 355 Q58 390 62 420 L80 420 Q70 380 68 340 Q66 300 68 260 L62 260 L56 230 L52 190 L56 150 L60 120 Z" fill="rgba(0,0,0,0.35)" class="hcb-body-shadow"/>
-            <path d="M122 112 Q142 140 146 190 Q148 240 142 280 Q136 320 128 355 Q122 390 118 420 L100 420 Q110 380 112 340 Q114 300 112 260 L118 260 L124 230 L128 190 L124 150 L120 120 Z" fill="rgba(0,0,0,0.35)" class="hcb-body-shadow"/>
-
-            <!-- FLOATING PARTICLES around body -->
-            <circle cx="25" cy="120" r="1.5" fill="rgba(168,255,62,0.7)" class="hcb-particle" style="animation-delay:0s"/>
-            <circle cx="155" cy="180" r="1" fill="rgba(168,255,62,0.5)" class="hcb-particle" style="animation-delay:0.5s"/>
-            <circle cx="20" cy="250" r="2" fill="rgba(168,255,62,0.6)" class="hcb-particle" style="animation-delay:1s"/>
-            <circle cx="160" cy="300" r="1.2" fill="rgba(168,255,62,0.4)" class="hcb-particle" style="animation-delay:1.5s"/>
-            <circle cx="30" cy="380" r="1.5" fill="rgba(168,255,62,0.5)" class="hcb-particle" style="animation-delay:0.8s"/>
-            <circle cx="150" cy="80" r="1" fill="rgba(168,255,62,0.6)" class="hcb-particle" style="animation-delay:0.3s"/>
-            <!-- Molecule structure -->
-            <circle cx="15" cy="200" r="3" fill="none" stroke="rgba(168,255,62,0.25)" stroke-width="0.8"/>
-            <line x1="15" y1="200" x2="5" y2="190" stroke="rgba(168,255,62,0.2)" stroke-width="0.6"/>
-            <line x1="15" y1="200" x2="25" y2="192" stroke="rgba(168,255,62,0.2)" stroke-width="0.6"/>
-            <line x1="15" y1="200" x2="8" y2="210" stroke="rgba(168,255,62,0.2)" stroke-width="0.6"/>
-            <circle cx="5" cy="190" r="2" fill="none" stroke="rgba(168,255,62,0.2)" stroke-width="0.7"/>
-            <circle cx="25" cy="192" r="2" fill="none" stroke="rgba(168,255,62,0.2)" stroke-width="0.7"/>
-
-            <circle cx="165" cy="240" r="3" fill="none" stroke="rgba(168,255,62,0.25)" stroke-width="0.8"/>
-            <line x1="165" y1="240" x2="175" y2="230" stroke="rgba(168,255,62,0.2)" stroke-width="0.6"/>
-            <line x1="165" y1="240" x2="155" y2="232" stroke="rgba(168,255,62,0.2)" stroke-width="0.6"/>
-            <line x1="165" y1="240" x2="172" y2="250" stroke="rgba(168,255,62,0.2)" stroke-width="0.6"/>
-            <circle cx="175" cy="230" r="2" fill="none" stroke="rgba(168,255,62,0.2)" stroke-width="0.7"/>
-            <circle cx="155" cy="232" r="2" fill="none" stroke="rgba(168,255,62,0.2)" stroke-width="0.7"/>
-
-            <!-- Scanning line sweep -->
-            <rect x="20" y="0" width="140" height="3" fill="url(#scanLineGrad)" rx="1.5" class="hcb-scan-sweep" opacity="0.6"/>
-            <defs>
-              <linearGradient id="scanLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="transparent"/>
-                <stop offset="30%" stop-color="rgba(168,255,62,0.8)"/>
-                <stop offset="70%" stop-color="rgba(168,255,62,0.8)"/>
-                <stop offset="100%" stop-color="transparent"/>
-              </linearGradient>
-            </defs>
-          </svg>
-          <!-- Body glow halos -->
-          <div class="hcb-body-halo1"></div>
-          <div class="hcb-body-halo2"></div>
-          <div class="hcb-body-halo3"></div>
-        </div>
-        <!-- Floating particle field -->
-        <div class="hcb-particles" id="hcb-particles"></div>
       </div>
 
       <div class="hero-content">
@@ -800,23 +593,6 @@
   </div>
 </div>
 
-<script>
-// Spawn hero center body particles
-(function() {
-  const container = document.getElementById('hcb-particles');
-  if (!container) return;
-  for (let i = 0; i < 30; i++) {
-    const el = document.createElement('div');
-    el.className = 'hcb-ptcl';
-    const size = Math.random() * 2.5 + 0.5;
-    const x = Math.random() * 100;
-    const delay = Math.random() * 10;
-    const dur = Math.random() * 8 + 6;
-    el.style.cssText = `left:${x}%;width:${size}px;height:${size}px;animation-delay:${delay}s;animation-duration:${dur}s;opacity:${Math.random()*0.6+0.1}`;
-    container.appendChild(el);
-  }
-})();
-</script>
 <script src="inject_js.js"></script>
 
 <script>
@@ -1027,6 +803,45 @@
     hero.style.backgroundPosition = `calc(50% + ${cX.toFixed(2)}px) calc(50% + ${cY.toFixed(2)}px)`;
     requestAnimationFrame(loop);
   })();
+})();
+</script>
+
+<script>
+/* ── MOBILE NAVIGATION ── */
+var MobileNav = (function() {
+  function sidebar()  { return document.getElementById('sidebar'); }
+  function backdrop() { return document.getElementById('sidebar-backdrop'); }
+  function btn()      { return document.getElementById('btn-hamburger'); }
+
+  function open() {
+    sidebar().classList.add('open');
+    backdrop().classList.add('show');
+    btn().classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function close() {
+    sidebar().classList.remove('open');
+    backdrop().classList.remove('show');
+    btn().classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function toggle() {
+    sidebar().classList.contains('open') ? close() : open();
+  }
+
+  // Auto-close drawer when category selected on mobile
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.cat-btn') && window.innerWidth <= 768) close();
+  });
+
+  // Close on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') close();
+  });
+
+  return { open: open, close: close, toggle: toggle };
 })();
 </script>
 </body>
