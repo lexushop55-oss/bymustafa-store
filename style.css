@@ -4445,9 +4445,9 @@ button:active:not(:disabled),
 }
 
 /* ============================================================
-   MOBILE NAVIGATION v1 — Drawer + Hamburger + Hero Mobile
-   Desktop layout is completely untouched.
-   !important used only where existing rules also use !important.
+   MOBILE NAVIGATION v1 — Drawer + Hamburger
+   Desktop layout completely untouched.
+   Hero mobile handled by existing rules at line ~3157.
 ============================================================ */
 
 /* ── Hamburger button — hidden on desktop ── */
@@ -4538,11 +4538,6 @@ button:active:not(:disabled),
     transform: translateX(0) !important;
   }
 
-  /* Topbar compact */
-  .topbar { padding: 0 14px !important; gap: 8px !important; }
-  .logo-gem { width: 34px !important; height: 34px !important; }
-  .logo-text { display: none !important; }
-
   /* Search — always visible on mobile */
   .search-wrap {
     display: flex !important;
@@ -4551,97 +4546,21 @@ button:active:not(:disabled),
     min-width: 0 !important;
   }
 
-  /* ── HERO MOBILE — premium cinematic ── */
-  .hero {
-    min-height: 360px !important;
-    border-radius: 18px !important;
-    background-position: 68% center !important;
-    background-size: auto 105% !important;
-  }
-
-  /* Stronger overlay on mobile — text always legible over photo */
-  .hero::after {
-    background: linear-gradient(
-      to right,
-      rgba(6,10,6,0.97) 0%,
-      rgba(6,10,6,0.93) 42%,
-      rgba(6,10,6,0.70) 65%,
-      rgba(6,10,6,0.32) 85%,
-      rgba(6,10,6,0.10) 100%
-    ) !important;
-  }
-
-  /* Single column, text left-aligned — clean & focused */
-  .hero-content {
-    flex-direction: column !important;
-    padding: 48px 26px 40px !important;
-    gap: 0 !important;
-    align-items: flex-start !important;
-    text-align: left !important;
-    background: none !important;
-  }
-  .hero-left { max-width: 100% !important; }
-
-  /* Larger headline for impact — the hero CTA */
-  .hero-title {
-    font-size: clamp(56px, 13vw, 76px) !important;
-    line-height: 0.88 !important;
-    margin-bottom: 14px !important;
-  }
-  .hero-subtitle {
-    font-size: 11px !important;
-    letter-spacing: 4px !important;
-    margin-bottom: 16px !important;
-  }
-  .hero-text {
-    font-size: 14px !important;
-    line-height: 1.75 !important;
-    max-width: 78% !important;
-    margin-bottom: 30px !important;
-  }
-  .hero-actions {
-    justify-content: flex-start !important;
-    gap: 10px !important;
-  }
-  .hero-btn-main {
-    padding: 14px 28px !important;
-    font-size: 14px !important;
-  }
-  .hero-btn-outline {
-    padding: 13px 20px !important;
-    font-size: 13px !important;
-  }
-
-  /* Hide specs column — visual noise on mobile */
+  /* Hide specs column */
   .hero-right { display: none !important; }
 
   /* Reduce fog layers on mobile for performance */
   .hcb-fog1,
   .hcb-fog2 { opacity: 0.4 !important; }
 
-  /* Product grid */
-  .grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
-  .p-card { border-radius: 18px !important; }
-  .p-img { height: 155px !important; }
-  .p-body { padding: 11px 13px 13px !important; }
-  .p-price { font-size: 18px !important; }
-  .p-name { font-size: 12px !important; }
-
-  /* Main padding */
-  .main { padding: 14px !important; }
-
   /* Modals */
   .cart-panel { width: 100% !important; max-width: 100% !important; border-radius: var(--r-xl) var(--r-xl) 0 0 !important; }
   .modal-img-wrap { height: 240px !important; }
   .modal-body { padding: 16px 18px 22px !important; }
   .form-grid { grid-template-columns: 1fr !important; }
-  .stats-bar { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
 }
 
 @media (max-width: 480px) {
-
-  /* Topbar very compact */
-  .topbar { padding: 0 12px !important; gap: 6px !important; }
 
   /* Search: compact but always accessible */
   .search-wrap {
@@ -4650,39 +4569,9 @@ button:active:not(:disabled),
     flex-shrink: 1 !important;
   }
 
-  /* Hero compact */
-  .hero {
-    min-height: 300px !important;
-    margin-bottom: 16px !important;
-    background-position: 72% center !important;
-  }
-  .hero-content { padding: 34px 18px 28px !important; }
-  .hero-title {
-    font-size: clamp(44px, 12vw, 58px) !important;
-    margin-bottom: 10px !important;
-  }
-  .hero-text {
-    font-size: 13px !important;
-    max-width: 100% !important;
-    margin-bottom: 24px !important;
-  }
-  .hero-btn-main { padding: 12px 22px !important; font-size: 13px !important; }
-  .hero-btn-outline { padding: 11px 16px !important; font-size: 12px !important; }
-
-  /* Cards */
-  .grid { gap: 8px !important; }
-  .p-img { height: 130px !important; }
-  .p-body { padding: 10px 11px 12px !important; }
-  .p-price { font-size: 16px !important; }
-  .p-name { font-size: 11px !important; }
-  .page-title { font-size: 20px !important; }
-
   /* Disable 3D card tilt on mobile — performance */
   .p-card:hover { transform: none !important; }
   .p-card:hover .p-img img { transform: none !important; }
-
-  /* Btn-pick compact */
-  .btn-pick { padding: 0 10px !important; font-size: 12px !important; }
 }
 
 /* Reduce motion for accessibility / low-end devices */
@@ -4690,6 +4579,5 @@ button:active:not(:disabled),
   .sidebar { transition: none !important; }
   .sidebar-backdrop { transition: none !important; }
   .btn-hamburger span { transition: none !important; }
-  .p-card { transition: border-color .2s !important; }
   .hero-btn-main { animation: none !important; }
 }
