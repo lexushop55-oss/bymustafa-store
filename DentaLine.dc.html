@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <title>DentaLine — CRM для стоматологии</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+  <script src="./dentaline.config.js"></script>
+  <script src="./auth.js"></script>
+  <style>
+    html,body{margin:0;background:#F4F4F2;color:#1C1C1A;font-family:'Inter',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;letter-spacing:-0.005em;overflow-x:hidden;}
+    a{color:#0E6F68;text-decoration:none;}
+    a:hover{color:#0A5852;}
+    input{font-family:inherit;}
+    input:focus{outline:none;border-color:#0E6F68!important;box-shadow:0 0 0 3px rgba(14,111,104,0.18);}
+    button:focus-visible,a:focus-visible{outline:2px solid #0E6F68;outline-offset:2px;}
+    ::selection{background:#E3EFED;color:#0A5852;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    @media (max-width:420px){ [data-hdr-reg]{display:none;} }
+  </style>
+</helmet>
+
+<div style="min-height:100vh;background:#F4F4F2;color:#1C1C1A;">
+
+<sc-if value="{{ isLanding }}" hint-placeholder-val="{{ true }}">
+  <div data-screen-label="Главная" style="max-width:1160px;margin:0 auto;padding:0 20px;box-sizing:border-box;">
+    <header style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 0;">
+      <a href="#/" style="display:flex;align-items:center;gap:9px;color:#1C1C1A;">
+        <span style="width:28px;height:28px;border-radius:4px;background:#111110;display:flex;align-items:center;justify-content:center;color:#F4F4F2;font-weight:600;font-size:12px;">D</span>
+        <span style="font-weight:600;font-size:16px;letter-spacing:-0.2px;">DentaLine</span>
+      </a>
+      <nav style="display:flex;align-items:center;gap:6px;">
+        <button onClick="{{ toLogin }}" style="min-height:40px;padding:0 14px;background:transparent;border:none;border-radius:8px;font:inherit;font-size:14px;font-weight:500;color:#1C1C1A;cursor:pointer;" style-hover="background:#EAEAE6;">Войти</button>
+        <button data-hdr-reg="1" onClick="{{ toRegister }}" style="min-height:40px;padding:0 14px;background:#1C1C1A;color:#F4F4F2;border:none;border-radius:8px;font:inherit;font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap;" style-hover="background:#3C3C38;">Зарегистрироваться</button>
+      </nav>
+    </header>
+
+    <section style="display:flex;flex-wrap:wrap;align-items:center;gap:40px 56px;padding:clamp(40px,8vw,96px) 0 clamp(48px,7vw,88px);">
+      <div style="flex:1 1 420px;min-width:0;max-width:600px;">
+        <div style="font-size:12px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:#0E6F68;margin-bottom:16px;">CRM для частной стоматологии</div>
+        <h1 style="margin:0;font-size:clamp(32px,5.2vw,54px);line-height:1.06;font-weight:500;letter-spacing:-0.03em;text-wrap:balance;">Расписание, пациенты и касса клиники в одном окне</h1>
+        <p style="margin:20px 0 0;font-size:clamp(16px,1.6vw,18px);line-height:1.55;color:#5A5A54;max-width:500px;text-wrap:pretty;">DentaLine ведёт записи по креслам и врачам, хранит карты пациентов, считает оплаты и отвечает на заявки из мессенджеров.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:30px;">
+          <button onClick="{{ toRegister }}" style="min-height:48px;padding:0 22px;background:#0E6F68;color:#FFFFFF;border:none;border-radius:8px;font:inherit;font-size:15px;font-weight:500;cursor:pointer;" style-hover="background:#0A5852;">Зарегистрировать клинику</button>
+          <button onClick="{{ toLogin }}" style="min-height:48px;padding:0 22px;background:#FDFDFC;color:#1C1C1A;border:1px solid #D6D6CF;border-radius:8px;font:inherit;font-size:15px;font-weight:500;cursor:pointer;" style-hover="border-color:#A9A9A1;">Войти в кабинет</button>
+        </div>
+      </div>
+
+      <div aria-hidden="true" style="flex:1 1 360px;min-width:0;max-width:460px;background:#FDFDFC;border:1px solid #E0E0DA;border-radius:10px;box-shadow:0 24px 60px -24px rgba(28,28,24,0.22);overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #EAEAE6;">
+          <div style="font-size:13px;font-weight:600;">Сегодня</div>
+          <div style="font-size:12px;color:#5A5A54;">2 кресла · 3 врача</div>
+        </div>
+        <div style="display:flex;flex-direction:column;">
+          <div style="display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid #EAEAE6;">
+            <div style="font-size:13px;color:#5A5A54;font-variant-numeric:tabular-nums;">09:30</div>
+            <div style="min-width:0;"><div style="font-size:13.5px;font-weight:500;">Ирина Ковалёва</div><div style="font-size:12px;color:#5A5A54;margin-top:2px;">Профгигиена · кресло 1</div></div>
+            <div style="font-size:11.5px;font-weight:500;color:#2E6B45;background:#E8F1EA;padding:3px 8px;border-radius:999px;">Приём завершён</div>
+          </div>
+          <div style="display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid #EAEAE6;background:#F3F7F6;box-shadow:inset 2px 0 0 #0E6F68;">
+            <div style="font-size:13px;color:#1C1C1A;font-variant-numeric:tabular-nums;font-weight:500;">10:00</div>
+            <div style="min-width:0;"><div style="font-size:13.5px;font-weight:500;">Андрей Морозов</div><div style="font-size:12px;color:#5A5A54;margin-top:2px;">Лечение кариеса · кресло 2</div></div>
+            <div style="font-size:11.5px;font-weight:500;color:#0A5852;background:#E3EFED;padding:3px 8px;border-radius:999px;">В кресле</div>
+          </div>
+          <div style="display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid #EAEAE6;">
+            <div style="font-size:13px;color:#5A5A54;font-variant-numeric:tabular-nums;">11:30</div>
+            <div style="min-width:0;"><div style="font-size:13.5px;font-weight:500;">Елена Смирнова</div><div style="font-size:12px;color:#5A5A54;margin-top:2px;">Консультация ортодонта</div></div>
+            <div style="font-size:11.5px;font-weight:500;color:#875200;background:#F8F0E1;padding:3px 8px;border-radius:999px;">Ждёт подтверждения</div>
+          </div>
+          <div style="display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;padding:12px 16px;">
+            <div style="font-size:13px;color:#5A5A54;font-variant-numeric:tabular-nums;">12:15</div>
+            <div style="min-width:0;"><div style="font-size:13.5px;font-weight:500;">Заявка из Telegram</div><div style="font-size:12px;color:#5A5A54;margin-top:2px;">Робот подобрал время</div></div>
+            <div style="font-size:11.5px;font-weight:500;color:#5E5E58;background:#EFEFEB;padding:3px 8px;border-radius:999px;">Новая</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:1px;background:#E0E0DA;border:1px solid #E0E0DA;border-radius:10px;overflow:hidden;margin-bottom:clamp(48px,7vw,88px);">
+      <div style="background:#FDFDFC;padding:22px 20px;">
+        <div style="font-size:15px;font-weight:600;letter-spacing:-0.1px;">Календарь по креслам</div>
+        <div style="font-size:14px;line-height:1.55;color:#5A5A54;margin-top:8px;">Записи по врачам и креслам, перенос перетаскиванием, лист ожидания.</div>
+      </div>
+      <div style="background:#FDFDFC;padding:22px 20px;">
+        <div style="font-size:15px;font-weight:600;letter-spacing:-0.1px;">Карты пациентов</div>
+        <div style="font-size:14px;line-height:1.55;color:#5A5A54;margin-top:8px;">История визитов, план лечения, оплаты и долги в одной карточке.</div>
+      </div>
+      <div style="background:#FDFDFC;padding:22px 20px;">
+        <div style="font-size:15px;font-weight:600;letter-spacing:-0.1px;">Касса и аналитика</div>
+        <div style="font-size:14px;line-height:1.55;color:#5A5A54;margin-top:8px;">Выручка по дням и врачам, возвраты, загрузка кресел.</div>
+      </div>
+      <div style="background:#FDFDFC;padding:22px 20px;">
+        <div style="font-size:15px;font-weight:600;letter-spacing:-0.1px;">Робот-администратор</div>
+        <div style="font-size:14px;line-height:1.55;color:#5A5A54;margin-top:8px;">Принимает заявки в Telegram и WhatsApp и записывает на свободное время.</div>
+      </div>
+    </section>
+
+    <footer style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;padding:20px 0 28px;border-top:1px solid #E0E0DA;font-size:13px;color:#5A5A54;">
+      <div>DentaLine</div>
+      <div style="display:flex;gap:16px;"><a href="#/login">Вход</a><a href="#/register">Регистрация</a></div>
+    </footer>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isAuth }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Авторизация" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px 32px;box-sizing:border-box;">
+    <div style="width:100%;max-width:400px;display:flex;align-items:center;justify-content:space-between;padding:4px 0 clamp(24px,8vh,72px);">
+      <a href="#/" style="display:flex;align-items:center;gap:9px;color:#1C1C1A;">
+        <span style="width:28px;height:28px;border-radius:4px;background:#111110;display:flex;align-items:center;justify-content:center;color:#F4F4F2;font-weight:600;font-size:12px;">D</span>
+        <span style="font-weight:600;font-size:16px;letter-spacing:-0.2px;">DentaLine</span>
+      </a>
+      <a href="#/" style="display:flex;align-items:center;gap:4px;font-size:13px;color:#5A5A54;min-height:40px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>На главную
+      </a>
+    </div>
+
+    <div style="width:100%;max-width:400px;background:#FDFDFC;border:1px solid #E0E0DA;border-radius:10px;box-shadow:0 1px 2px rgba(28,28,24,0.05);padding:clamp(20px,5vw,28px);box-sizing:border-box;">
+      <h1 style="margin:0;font-size:22px;font-weight:500;letter-spacing:-0.02em;">{{ authTitle }}</h1>
+      <p style="margin:6px 0 20px;font-size:14px;line-height:1.5;color:#5A5A54;">{{ authSubtitle }}</p>
+
+      <form onSubmit="{{ onSubmit }}" noValidate="" style="display:flex;flex-direction:column;gap:14px;margin:0;">
+        <sc-if value="{{ isRegister }}" hint-placeholder-val="{{ false }}">
+          <label style="display:flex;flex-direction:column;gap:6px;">
+            <span style="font-size:13px;font-weight:500;color:#3C3C38;">Имя</span>
+            <input value="{{ fullName }}" onChange="{{ onFullName }}" autoComplete="name" placeholder="Как к вам обращаться" style="height:46px;padding:0 12px;border:1px solid #D6D6CF;border-radius:8px;background:#FDFDFC;color:#1C1C1A;font-size:16px;box-sizing:border-box;width:100%;"/>
+          </label>
+        </sc-if>
+
+        <sc-if value="{{ showEmail }}" hint-placeholder-val="{{ true }}">
+          <label style="display:flex;flex-direction:column;gap:6px;">
+            <span style="font-size:13px;font-weight:500;color:#3C3C38;">{{ emailLabel }}</span>
+            <input value="{{ email }}" onChange="{{ onEmail }}" type="text" inputMode="email" autoComplete="username" autoCapitalize="off" spellCheck="false" placeholder="name@clinic.ru" style="height:46px;padding:0 12px;border:1px solid #D6D6CF;border-radius:8px;background:#FDFDFC;color:#1C1C1A;font-size:16px;box-sizing:border-box;width:100%;"/>
+          </label>
+        </sc-if>
+
+        <sc-if value="{{ showPassword }}" hint-placeholder-val="{{ true }}">
+          <label style="display:flex;flex-direction:column;gap:6px;">
+            <span style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+              <span style="font-size:13px;font-weight:500;color:#3C3C38;">{{ passwordLabel }}</span>
+              <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}"><a href="#/forgot" style="font-size:13px;">Забыли пароль?</a></sc-if>
+            </span>
+            <span style="position:relative;display:block;">
+              <input value="{{ password }}" onChange="{{ onPassword }}" type="{{ passType }}" autoComplete="{{ passAutocomplete }}" placeholder="{{ passPlaceholder }}" style="height:46px;padding:0 48px 0 12px;border:1px solid #D6D6CF;border-radius:8px;background:#FDFDFC;color:#1C1C1A;font-size:16px;box-sizing:border-box;width:100%;"/>
+              <button type="button" onClick="{{ toggleShowPass }}" aria-label="{{ passToggleLabel }}" style="position:absolute;right:3px;top:3px;width:40px;height:40px;border:none;background:transparent;border-radius:6px;color:#5A5A54;cursor:pointer;display:flex;align-items:center;justify-content:center;" style-hover="background:#EFEFEB;color:#1C1C1A;">
+                <sc-if value="{{ showPass }}" hint-placeholder-val="{{ false }}">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.2A9.5 9.5 0 0 1 12 5c5 0 9 4.5 10 7a12.6 12.6 0 0 1-3 4.2M6.2 6.2C3.9 7.7 2.5 10 2 12c1 2.5 5 7 10 7 1.7 0 3.2-.5 4.6-1.2"></path></svg>
+                </sc-if>
+                <sc-if value="{{ hidePass }}" hint-placeholder-val="{{ true }}">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12c1-2.5 5-7 10-7s9 4.5 10 7c-1 2.5-5 7-10 7S3 14.5 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </sc-if>
+              </button>
+            </span>
+          </label>
+        </sc-if>
+
+        <sc-if value="{{ isRegister }}" hint-placeholder-val="{{ false }}">
+          <label style="display:flex;flex-direction:column;gap:6px;">
+            <span style="font-size:13px;font-weight:500;color:#3C3C38;">Название компании</span>
+            <input value="{{ company }}" onChange="{{ onCompany }}" autoComplete="organization" placeholder="Например, «Стоматология на Ленина»" style="height:46px;padding:0 12px;border:1px solid #D6D6CF;border-radius:8px;background:#FDFDFC;color:#1C1C1A;font-size:16px;box-sizing:border-box;width:100%;"/>
+          </label>
+        </sc-if>
+
+        <sc-if value="{{ error }}" hint-placeholder-val="{{ false }}">
+          <div role="alert" style="display:flex;gap:8px;align-items:flex-start;font-size:13.5px;line-height:1.45;color:#B0291E;background:#FBECE9;border-radius:8px;padding:10px 12px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex:none;margin-top:2px;"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16h.01"></path></svg>
+            <div>{{ error }}</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ info }}" hint-placeholder-val="{{ false }}">
+          <div role="status" style="display:flex;gap:8px;align-items:flex-start;font-size:13.5px;line-height:1.45;color:#0A5852;background:#E3EFED;border-radius:8px;padding:10px 12px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:2px;"><path d="M20 6L9 17l-5-5"></path></svg>
+            <div>{{ info }}</div>
+          </div>
+        </sc-if>
+
+        <button type="submit" disabled="{{ busy }}" style="height:48px;margin-top:4px;background:#0E6F68;color:#FFFFFF;border:none;border-radius:8px;font:inherit;font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;" style-hover="background:#0A5852;">
+          <sc-if value="{{ busy }}" hint-placeholder-val="{{ false }}"><span style="width:15px;height:15px;border:2px solid rgba(255,255,255,0.4);border-top-color:#FFFFFF;border-radius:50%;animation:spin 700ms linear infinite;"></span></sc-if>
+          {{ submitLabel }}
+        </button>
+      </form>
+
+      <div style="margin-top:18px;font-size:14px;color:#5A5A54;text-align:center;">
+        <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">Нет аккаунта? <a href="#/register">Зарегистрироваться</a></sc-if>
+        <sc-if value="{{ isRegister }}" hint-placeholder-val="{{ false }}">Уже есть аккаунт? <a href="#/login">Войти</a></sc-if>
+        <sc-if value="{{ isForgotOrReset }}" hint-placeholder-val="{{ false }}"><a href="#/login">Вернуться ко входу</a></sc-if>
+      </div>
+    </div>
+
+    <sc-if value="{{ isDemo }}" hint-placeholder-val="{{ false }}">
+      <div style="width:100%;max-width:400px;margin-top:14px;font-size:12.5px;line-height:1.5;color:#5A5A54;">Демо-режим: сервер авторизации не подключён, учётные записи и данные хранятся только в этом браузере.</div>
+    </sc-if>
+  </div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const ROUTES = ['/', '/login', '/register', '/forgot', '/reset'];
+function readRoute() {
+  const h = (window.location.hash || '').replace(/^#/, '');
+  if (/type=recovery/.test(h)) return '/reset';
+  const r = h.split('?')[0] || '/';
+  return ROUTES.indexOf(r) >= 0 ? r : '/';
+}
+const COPY = {
+  '/login':    { title:'Вход в кабинет', sub:'Введите email и пароль, указанные при регистрации.', submit:'Войти', busy:'Входим…' },
+  '/register': { title:'Регистрация клиники', sub:'Создадим кабинет компании, вы станете его владельцем.', submit:'Создать кабинет', busy:'Создаём кабинет…' },
+  '/forgot':   { title:'Восстановление пароля', sub:'Пришлём ссылку для нового пароля на ваш email.', submit:'Отправить ссылку', busy:'Отправляем…' },
+  '/reset':    { title:'Новый пароль', sub:'Придумайте пароль не короче 8 символов.', submit:'Сохранить пароль', busy:'Сохраняем…' }
+};
+
+class Component extends DCLogic {
+  state = { route: readRoute(), fullName:'', email:'', password:'', company:'', showPass:false, busy:false, error:'', info:'' };
+
+  componentDidMount() {
+    this._onHash = () => this.setState({ route: readRoute(), error:'', info:'', password:'', showPass:false });
+    window.addEventListener('hashchange', this._onHash);
+    const A = window.DentaAuth;
+    if (!A) return;
+    A.onRecovery(() => this.setState({ route:'/reset' }));
+    // Уже вошедшего пользователя не держим на экранах входа.
+    if (this.state.route === '/login' || this.state.route === '/register') {
+      A.getWorkspace().then(ws => { if (ws.ok && readRoute() !== '/reset') A.go(ws.superadmin && !ws.companyId ? 'portal' : 'dashboard'); });
+    }
+  }
+  componentWillUnmount() { window.removeEventListener('hashchange', this._onHash); }
+
+  nav(r) { window.location.hash = '#' + r; }
+
+  async submit(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    const A = window.DentaAuth, s = this.state;
+    if (!A || s.busy) return;
+    this.setState({ busy:true, error:'', info:'' });
+    let res;
+    try {
+      if (s.route === '/login') res = await A.signIn(s.email, s.password);
+      else if (s.route === '/register') res = await A.signUp({ fullName:s.fullName, email:s.email, password:s.password, company:s.company });
+      else if (s.route === '/forgot') res = await A.requestReset(s.email);
+      else res = await A.updatePassword(s.password);
+    } catch (err) { res = { ok:false, message:'Что-то пошло не так. Попробуйте ещё раз' }; }
+
+    if (!res.ok) { this.setState({ busy:false, error:res.message, password: res.code === 'wrong_password' || res.code === 'invalid' ? '' : s.password }); return; }
+    if (res.needsConfirm) { this.setState({ busy:false, password:'', info:'Аккаунт создан. Мы отправили письмо на ' + s.email.trim() + ' — подтвердите адрес и войдите.' }); return; }
+    if (s.route === '/forgot') { this.setState({ busy:false, info:'Если адрес зарегистрирован, письмо со ссылкой уже в пути.' }); return; }
+    if (s.route === '/reset') { this.setState({ busy:false, password:'' }); A.go('dashboard'); return; }
+    this.setState({ password:'' });
+    A.go(res.route);
+  }
+
+  renderVals() {
+    const s = this.state, r = s.route, c = COPY[r] || COPY['/login'];
+    const isAuth = r !== '/';
+    const A = window.DentaAuth;
+    return {
+      isLanding: !isAuth, isAuth,
+      isLogin: r === '/login', isRegister: r === '/register', isForgotOrReset: r === '/forgot' || r === '/reset',
+      showEmail: r !== '/reset', showPassword: r !== '/forgot',
+      isDemo: !!A && A.mode() === 'demo',
+      authTitle: c.title, authSubtitle: c.sub, submitLabel: s.busy ? c.busy : c.submit,
+      emailLabel: r === '/login' ? 'Email или логин' : 'Email',
+      passwordLabel: r === '/reset' ? 'Новый пароль' : 'Пароль',
+      passPlaceholder: r === '/login' ? 'Пароль' : 'Не короче 8 символов',
+      passAutocomplete: r === '/login' ? 'current-password' : 'new-password',
+      passType: s.showPass ? 'text' : 'password', showPass: s.showPass, hidePass: !s.showPass,
+      passToggleLabel: s.showPass ? 'Скрыть пароль' : 'Показать пароль',
+      fullName: s.fullName, email: s.email, password: s.password, company: s.company,
+      busy: s.busy, error: s.error, info: s.info,
+      onFullName: (e) => this.setState({ fullName:e.target.value, error:'' }),
+      onEmail: (e) => this.setState({ email:e.target.value, error:'' }),
+      onPassword: (e) => this.setState({ password:e.target.value, error:'' }),
+      onCompany: (e) => this.setState({ company:e.target.value, error:'' }),
+      toggleShowPass: () => this.setState(st => ({ showPass: !st.showPass })),
+      onSubmit: (e) => this.submit(e),
+      toLogin: () => this.nav('/login'), toRegister: () => this.nav('/register')
+    };
+  }
+}
+</script>
+</body>
+</html>
