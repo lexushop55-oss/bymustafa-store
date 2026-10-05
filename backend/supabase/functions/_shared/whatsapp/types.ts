@@ -18,7 +18,7 @@ export interface WhatsAppConnection {
   is_active: boolean;
 }
 
-export type ProviderId = "meta_cloud" | "mock";
+export type ProviderId = "meta_cloud" | "mock" | "baileys";
 
 /** Расшифрованные секреты подключения. Живут только в памяти функции. */
 export interface ConnectionSecrets {
@@ -56,6 +56,8 @@ export interface NormalizedStatus {
 export interface WebhookBatch {
   messages: NormalizedMessage[];
   statuses: NormalizedStatus[];
+  /** Событие состояния сессии (провайдер по QR): номер привязан / отвязан в телефоне. */
+  connection?: { state: string; phone: string | null; name: string | null };
 }
 
 export interface ConnectInput {

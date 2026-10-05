@@ -9,7 +9,7 @@
 //         5) в фоне: нормализовать → processInbound / applyStatus
 
 import { serviceClient } from "../_shared/auth.ts";
-import { connectionByWebhookKey, getAdapter, loadSecrets } from "../_shared/whatsapp/index.ts";
+import { activateQrConnection, connectionByWebhookKey, getAdapter, loadSecrets } from "../_shared/whatsapp/index.ts";
 import { applyStatus, processInbound } from "../_shared/whatsapp/inbound.ts";
 import { sha256Hex } from "../_shared/whatsapp/types.ts";
 
@@ -63,7 +63,18 @@ Deno.serve(async (req) => {
   const work = (async () => {
     try {
       const batch = adapter.normalizeIncomingMessage(payload, conn);
-      for (const m of batch.messages) await processInbound(db, conn, m);
+      if (batch.connection) {
+        if (batch.connection.state === "connected") {
+          if (!conn.is_active) await activateQrConnection(db, conn, batch.connection.phone, batch.connection.name);
+        } else if (batch.connection.state === "logged_out") {
+          await db.from("tenant_integrations").update({ status: "down", webhook_status: "failing",
+            last_error: "Номер отвязан в телефоне — подключите заново по QR-коду" }).eq("id", conn.id);
+        }
+      }
+      // Пока номер не активирован, сообщения не принимаем — подключение ещё не принадлежит компании окончательно.
+      if (conn.is_active || batch.connection?.state === "connected") {
+        for (const m of batch.messages) await processInbound(db, { ...conn, is_active: true }, m);
+      }
       for (const s of batch.statuses) await applyStatus(db, conn, s);
       await db.from("webhook_events").update({ status: batch.messages.length || batch.statuses.length ? "processed" : "ignored", processed_at: new Date().toISOString(), attempts: 1 }).eq("id", ev.id);
     } catch (e) {

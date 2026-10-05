@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
   <script src="./dentaline.config.js"></script>
   <script src="./auth.js"></script>
+  <script src="./crm-data.js"></script>
   <style>
     [data-num],[data-money],[data-kpi] [data-num],[data-mono]{font-variant-numeric:tabular-nums;letter-spacing:-0.01em;}
     [data-kpi] [data-num]{font-weight:600;}
@@ -1942,6 +1943,35 @@
               <sc-if value="{{ wa.notConnected }}" hint-placeholder-val="{{ true }}">
                 <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);margin-top:12px;padding:16px;max-width:760px;">
                   <div style="font-size:16px;font-weight:500;">Подключение WhatsApp</div>
+                  <sc-if value="{{ wa.qrPending }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:14px;align-items:flex-start;">
+                      <div style="width:240px;height:240px;flex:none;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                        <sc-if value="{{ wa.qrHasImage }}" hint-placeholder-val="{{ false }}">
+                          <div role="img" aria-label="QR-код для привязки WhatsApp" style="width:228px;height:228px;border-radius:6px;background-position:center;background-size:contain;background-repeat:no-repeat;background-image:{{ wa.qrBg }};"></div>
+                        </sc-if>
+                        <sc-if value="{{ wa.qrWaiting }}" hint-placeholder-val="{{ true }}">
+                          <div style="font-size:12.5px;color:var(--text-muted);">Готовим QR-код…</div>
+                        </sc-if>
+                        <sc-if value="{{ wa.qrExpired }}" hint-placeholder-val="{{ false }}">
+                          <button onClick="{{ wa.qrRefresh }}" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:12.5px;cursor:pointer;background:transparent;color:var(--text-secondary);white-space:nowrap;">Обновить QR-код</button>
+                        </sc-if>
+                      </div>
+                      <div style="flex:1;min-width:220px;">
+                        <div style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500;"><span style="width:7px;height:7px;border-radius:50%;background:var(--amber-fg);flex:none;"></span>{{ wa.qrStateText }}</div>
+                        <div style="display:flex;flex-direction:column;gap:7px;margin-top:12px;font-size:12.5px;color:var(--text-secondary);line-height:1.5;">
+                          <div>1. Откройте WhatsApp на телефоне клиники.</div>
+                          <div>2. Настройки → Связанные устройства → Привязка устройства.</div>
+                          <div>3. Наведите камеру на QR-код. Подключение завершится само.</div>
+                        </div>
+                        <div style="font-size:12px;color:var(--text-muted);margin-top:12px;line-height:1.5;">QR-код обновляется каждые 20 секунд. Если на этом номере уже работает другой бот, остановите его — иначе пациенту ответят дважды.</div>
+                        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+                          <button onClick="{{ wa.qrRefresh }}" disabled="{{ wa.busy }}" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:12.5px;cursor:pointer;background:transparent;color:var(--text-secondary);white-space:nowrap;">Новый QR-код</button>
+                          <button onClick="{{ wa.qrCancel }}" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:12.5px;cursor:pointer;background:transparent;color:var(--text-secondary);white-space:nowrap;color:var(--red-fg);">Отменить</button>
+                        </div>
+                      </div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ wa.qrNotPending }}" hint-placeholder-val="{{ true }}">
                   <div style="font-size:12.5px;color:var(--text-muted);margin-top:6px;line-height:1.55;max-width:620px;">Сообщения пациентов приходят в CRM, робот отвечает и записывает через данные клиники. Ключи доступа передаются на сервер один раз и хранятся в защищённом хранилище — в браузере и в данных CRM их нет.</div>
                   <div style="font-size:10.5px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);margin-top:16px;margin-bottom:7px;">Провайдер</div>
                   <div data-tabstrip="" style="display:inline-flex;gap:2px;background:var(--surface-2);border-radius:8px;padding:3px;max-width:100%;overflow-x:auto;">
@@ -1950,9 +1980,15 @@
                     </sc-for>
                   </div>
                   <sc-if value="{{ wa.demo }}" hint-placeholder-val="{{ true }}">
-                    <div style="font-size:12px;color:var(--text-muted);margin-top:8px;line-height:1.5;">Сервер не настроен (пустой dentaline.config.js), поэтому доступен только тестовый провайдер.</div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:8px;line-height:1.5;">Сервер не настроен (пустой dentaline.config.js), поэтому доступен только тестовый провайдер. Подключение настоящего номера — по QR-коду или через Cloud API — заработает после подключения сервера.</div>
                   </sc-if>
 
+                  <sc-if value="{{ wa.isQrForm }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:11px;margin-top:14px;">
+                      <label style="display:flex;flex-direction:column;gap:5px;font-size:11.5px;color:var(--text-muted);font-weight:500;min-width:0;">Название подключения<input value="{{ wa.form.displayName }}" onChange="{{ wa.onDisplayName }}" placeholder="Основной номер клиники" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid var(--border);border-radius:8px;font-size:13px;outline:none;"/></label>
+                    </div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:10px;line-height:1.5;max-width:620px;">Номер привязывается как связанное устройство WhatsApp — так же, как WhatsApp Web. Ключи не нужны: достаточно отсканировать QR-код телефоном клиники.</div>
+                  </sc-if>
                   <sc-if value="{{ wa.isMetaForm }}" hint-placeholder-val="{{ false }}">
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:11px;margin-top:14px;">
                       <label style="display:flex;flex-direction:column;gap:5px;font-size:11.5px;color:var(--text-muted);font-weight:500;min-width:0;">Название подключения<input value="{{ wa.form.displayName }}" onChange="{{ wa.onDisplayName }}" placeholder="Основной номер клиники" style="width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid var(--border);border-radius:8px;font-size:13px;outline:none;"/></label>
@@ -1972,6 +2008,7 @@
                   <div style="display:flex;gap:8px;margin-top:16px;">
                     <button onClick="{{ wa.connect }}" disabled="{{ wa.busy }}" style="padding:9px 13px;background:var(--accent);color:var(--accent-on);border:none;border-radius:8px;font-size:12.5px;font-weight:500;cursor:pointer;white-space:nowrap;">{{ wa.connectLabel }}</button>
                   </div>
+                  </sc-if>
                 </div>
               </sc-if>
 
@@ -3849,7 +3886,29 @@ const DIALOG_STATUS_META = {
 const MONTHS_GEN = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 const MONTHS_NOM = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 const WEEKDAYS_SHORT = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-const TODAY_ISO = '2026-08-19';
+// Демо стоит на фиксированной дате; в режиме supabase useLiveClock() переводит часы на реальные,
+// иначе записи робота на настоящие даты не попадают в «Сегодня» и календарь.
+let TODAY_ISO = '2026-08-19';
+let LIVE_CLOCK = false;
+function useLiveClock() {
+  if (LIVE_CLOCK) return;
+  const d = new Date(), p = (n) => String(n).padStart(2, '0');
+  TODAY_ISO = d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  DEMO_BASE_MIN = d.getHours() * 60 + d.getMinutes();
+  BOOT_MS = Date.now();
+  LIVE_CLOCK = true;
+}
+// Коллекции, которые в режиме supabase живут только в таблицах (crm-data.js).
+const LIVE_SLICES = ['clients', 'appointments', 'doctors', 'services'];
+function stripLive(o) { const r = Object.assign({}, o || {}); LIVE_SLICES.forEach(k => { delete r[k]; }); return r; }
+function liveEmpty() { return { clients:[], appointments:[], doctors:[], services:[] }; }
+function liveErrorText(e) {
+  const m = String((e && (e.message || e.details)) || e || '');
+  if ((e && e.code === '42501') || /row-level security|permission denied/i.test(m)) return 'Недостаточно прав для этого изменения — оно отменено';
+  return 'Не удалось сохранить на сервере' + (m ? ': ' + m.slice(0, 120) : '');
+}
+// Следующий номер записи. Нечисловые id не должны превращать результат в NaN.
+function nextApptId(list) { return (list || []).reduce((m, a) => (typeof a.id === 'number' && a.id > m) ? a.id : m, 1000) + 1; }
 // Клиника открыта 09:00–20:00, но каждый врач работает в своём окне —
 // календарь обязан считаться по врачу, а не только по клинике.
 const DOCTORS = [
@@ -4002,11 +4061,11 @@ function normalizePay(p) {
   return { cost: (p && p.cost) || 0, paid, refunded, method: last ? last.method : null, history };
 }
 function normalizeAppts(list) { return list.map(a => Object.assign({}, a, { payment: normalizePay(a.payment) })); }
-const DEMO_BASE_MIN = 10 * 60 + 12;
-const BOOT_MS = Date.now();
+let DEMO_BASE_MIN = 10 * 60 + 12;
+let BOOT_MS = Date.now();
 function nowStamp() {
   const elapsed = Math.floor((Date.now() - BOOT_MS) / 60000);
-  const total = Math.min(DEMO_BASE_MIN + elapsed, 19 * 60 + 59);
+  const total = Math.min(DEMO_BASE_MIN + elapsed, LIVE_CLOCK ? 23 * 60 + 59 : 19 * 60 + 59);
   return TODAY_ISO + 'T' + String(Math.floor(total / 60)).padStart(2,'0') + ':' + String(total % 60).padStart(2,'0');
 }
 function fmtStamp(at) { return fmtDateRu(at.slice(0,10), false) + ', ' + at.slice(11,16); }
@@ -4355,7 +4414,7 @@ function waTools(d, ctx) {
       if (!sv || !c) return err('bad_request', 'Создание записи: нет услуги или пациента');
       if (sv.aiBooking === 'consult') return err('service_requires_admin', 'Создание записи: услугу записывает администратор');
       if (busy(a.doctor_id, a.date, timeToMin(a.time), sv.duration)) return err('slot_taken', 'Слот уже занят — запись не создана');
-      const id = d.appointments.reduce((m, x) => Math.max(m, x.id), 1000) + 1;
+      const id = nextApptId(d.appointments);
       d.appointments = d.appointments.concat([{ id, clientId:c.id, serviceId:sv.id, doctorId:a.doctor_id, date:a.date, time:a.time, status:'new',
         source:'bot', comment:'Записан роботом в WhatsApp', createdAt:TODAY_ISO, conversationId:ctx.dialogId,
         history:[{ at:nowStamp(), action:'created', by:WA_ROBOT, to:a.date + ' ' + a.time }], payment:normalizePay({ cost:sv.price, history:[] }) }]);
@@ -4681,7 +4740,7 @@ class Component extends DCLogic {
     narrow:false, mid:false, mobileNav:false, demoEmpty:false,
     dialogSearch:'', dialogChannel:'all', dialogStatus:'all', dialogUnreadOnly:false, dialogSel:null, replyDraft:'',
     waTab:'inbox', waMobileChat:false, waConn:{ connected:false }, waAi:null, waSeen:{}, waForm:{}, waTest:{}, waSim:{ phone:'+7 999 123 45 67', name:'Ахмед', text:'' },
-    waShowActions:true, waRemoteDialogs:[], waRemoteConn:null, waRemoteAi:null, waVerifyToken:null, waBusy:false, waMockAvailable:false,
+    waShowActions:true, waRemoteDialogs:[], waRemoteConn:null, waRemoteAi:null, waVerifyToken:null, waBusy:false, waMockAvailable:false, waQr:null, waQrAvailable:false, waQrExpired:false,
     wlStatus:'active', wlService:'all', wlPriority:'all',
     apptSort:'date', apptSortDir:'asc', apptDoctor:'all', apptService:'all', apptFrom:'', apptTo:'',
     clientSort:'name', clientSortDir:'asc',
@@ -4731,9 +4790,12 @@ class Component extends DCLogic {
   componentDidMount() {
     const dev = readDevSession();
     const ws0 = dev ? null : readWorkspaceSync();
-    const saved = this.loadSaved(dev ? devClinicKey(dev.clinic, dev.ids) : companyStoreKey(ws0));
+    let saved = this.loadSaved(dev ? devClinicKey(dev.clinic, dev.ids) : companyStoreKey(ws0));
+    // Режим supabase: пациенты, записи, врачи и услуги не берём из кэша браузера — только из таблиц.
+    const liveWs = !!(ws0 && ws0.mode === 'supabase');
+    if (liveWs && saved) saved = Object.assign(stripLive(saved), liveEmpty());
     if (ws0) this.setState({ workspace: ws0, viewAsRole: WS_ROLE[ws0.role] || 'Manager' });
-    if (ws0 && !saved && ws0.companyId) this.setState(emptyClinic(ws0.companyName, ws0));
+    if (ws0 && !saved && ws0.companyId) this.setState(liveWs ? Object.assign(stripLive(emptyClinic(ws0.companyName, ws0)), liveEmpty()) : emptyClinic(ws0.companyName, ws0));
     if (dev) {
       const data = saved || devClinicSeed(dev.clinic, dev.ids);
       this.setState(st => {
@@ -4805,7 +4867,7 @@ class Component extends DCLogic {
     if (p.theme === 'light' || p.theme === 'dark') this.setState({ theme: p.theme });
   }
 
-  componentWillUnmount() { clearInterval(this._waTimer); if (this._onKey) window.removeEventListener('keydown', this._onKey); if (this._onResize) window.removeEventListener('resize', this._onResize); if (this._clock) clearInterval(this._clock); }
+  componentWillUnmount() { if (window.DentaData) window.DentaData.stop(); clearInterval(this._waTimer); clearInterval(this._waQrTimer); if (this._onKey) window.removeEventListener('keydown', this._onKey); if (this._onResize) window.removeEventListener('resize', this._onResize); if (this._clock) clearInterval(this._clock); }
 
   markSaved(key) {
     if (this._savedT) clearTimeout(this._savedT);
@@ -4839,8 +4901,40 @@ class Component extends DCLogic {
     const { caps, clients, services, appointments, doctors, dialogs, activity, aiEvents, faqItems, notifications, notifRead, tasks, team, businessHours, botSettings, integrations, requests, blacklist, reminders, waitlist, reviews, retention, retentionLog, waConn, waAi, waSeen } = this.state;
     const ws = this.state.workspace;
     const key = this.state.devPreviewName ? devClinicKey(this.state.devPreviewName, this.state.devIds) : companyStoreKey(ws);
-    if (ws && ws.mode === 'supabase' && window.DentaAuth) window.DentaAuth.saveState(ws.companyId, { caps, clients, services, appointments, doctors, dialogs, activity, aiEvents, faqItems, notifications, notifRead, tasks, team, businessHours, botSettings, integrations, requests, blacklist, reminders, waitlist, reviews, retention, retentionLog, waConn, waAi, waSeen });
-    try { localStorage.setItem(key, JSON.stringify({ caps, clients, services, appointments, doctors, dialogs, activity, aiEvents, faqItems, notifications, notifRead, tasks, team, businessHours, botSettings, integrations, requests, blacklist, reminders, waitlist, reviews, retention, retentionLog, waConn, waAi, waSeen })); } catch (e) {}
+    const all = { caps, clients, services, appointments, doctors, dialogs, activity, aiEvents, faqItems, notifications, notifRead, tasks, team, businessHours, botSettings, integrations, requests, blacklist, reminders, waitlist, reviews, retention, retentionLog, waConn, waAi, waSeen };
+    const live = !!(ws && ws.mode === 'supabase' && !this.state.devPreviewName);
+    // Режим supabase: пациенты/записи/врачи/услуги пишутся только в таблицы (те же, что у робота);
+    // в workspace_state и localStorage уходит всё остальное.
+    if (live && window.DentaData) window.DentaData.commit({ clients, appointments, doctors, services });
+    const rest = live ? stripLive(all) : all;
+    if (live && window.DentaAuth) window.DentaAuth.saveState(ws.companyId, rest);
+    try { localStorage.setItem(key, JSON.stringify(rest)); } catch (e) {}
+  }
+
+  // Режим supabase: пациенты, записи, врачи и услуги — из таблиц (crm-data.js), остальное — из workspace_state.
+  // Старый снимок с этими коллекциями переносится в таблицы один раз и перезаписывается без них.
+  async openLiveData(ws, open) {
+    const A = window.DentaAuth, D = window.DentaData;
+    const normalize = (d) => Object.assign({}, d, { appointments: normalizeAppts(d.appointments || []) });
+    const fail = (msg) => { open(Object.assign(stripLive(emptyClinic(ws.companyName, ws)), liveEmpty(), { calendarRef:TODAY_ISO })); this.showToast(msg); };
+    if (!D) return fail('Не загрузился модуль данных (crm-data.js)');
+    const [remote, res] = await Promise.all([
+      A.loadState(ws.companyId).catch(() => null),
+      D.open(ws.companyId, { aiBookable: (sv) => aiBookingMode(sv) === 'auto', normalize,
+        onData: (data) => this.setState(data), onError: (e) => this.showToast(liveErrorText(e)) })]);
+    if (!res.ok) return fail('Не удалось загрузить пациентов и записи с сервера. Обновите страницу');
+    const legacy = remote && LIVE_SLICES.some(k => Array.isArray(remote[k]) && remote[k].length) ? remote : null;
+    let data = res.data;
+    if (legacy) data = normalize(await D.importLegacy(data, legacy));
+    else if (!remote && D.isEmpty(data)) {
+      // Новая компания: справочники по умолчанию сразу в таблицы, чтобы их видел робот.
+      const seed = emptyClinic(ws.companyName, ws);
+      data = { clients:[], appointments:[], doctors:seed.doctors, services:seed.services };
+      await D.commit(data);
+    }
+    open(Object.assign(stripLive(remote || emptyClinic(ws.companyName, ws)), data, { calendarRef:TODAY_ISO }));
+    if (legacy || !remote) this.setState({}, () => this.persist());
+    D.subscribe();
   }
 
   actorName() {
@@ -4905,7 +4999,8 @@ class Component extends DCLogic {
         const open = (extra) => this.setState(st => Object.assign({}, extra || {}, { loggedIn:true, loading:false, workspace:ws,
           viewAsRole: WS_ROLE[ws.role] || 'Manager', impersonation: ssGet(IMP_KEY) === '1', view: st.view === 'login' ? 'dashboard' : st.view }));
         if (ws.mode !== 'supabase') return open();
-        A.loadState(ws.companyId).then(remote => open(remote || emptyClinic(ws.companyName, ws)), () => open(emptyClinic(ws.companyName, ws)));
+        useLiveClock();
+        this.openLiveData(ws, open);
       });
     };
     run();
@@ -4919,6 +5014,7 @@ class Component extends DCLogic {
   }
   handleLogout() {
     this.persist();
+    if (window.DentaData) window.DentaData.stop();
     clearSession();
     if (apiBase()) apiFetch('/auth/logout', { method:'POST' });
     this.setState({ loggedIn:false, loading:true, impersonation:false, workspace:null, selectedApptId:null, selectedClientId:null });
@@ -4944,6 +5040,12 @@ class Component extends DCLogic {
     if (!r.ok) this.showToast(r.message || 'Ошибка сервера');
     return r;
   }
+  // ai_actions хранит uuid строки; интерфейс ссылается на пациента/запись по своему ключу (crm_ref).
+  waRefId(type, id) {
+    const t = { patient:'patients', appointment:'appointments' }[type];
+    const r = t && window.DentaData ? window.DentaData.refOf(t, id) : null;
+    return r == null ? id : r;
+  }
   waStampOf(iso) { const d = new Date(iso); const p = (n) => String(n).padStart(2,'0');
     return d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes()); }
   async waLoadRemote() {
@@ -4964,14 +5066,14 @@ class Component extends DCLogic {
       const FROM = { customer:'client', ai:'ai', employee:'staff', system:'system' };
       const list = (convs || []).map(c => {
         const name = (c.patients && c.patients.full_name) || c.contact_name || waFmtPhone(c.external_contact_id);
-        const base = { id:c.id, remote:true, clientId:null, name, channel:'whatsapp', phone:waFmtPhone(c.external_contact_id),
+        const base = { id:c.id, remote:true, clientId:(window.DentaData && window.DentaData.refOf('patients', c.patient_id)) || null, name, channel:'whatsapp', phone:waFmtPhone(c.external_contact_id),
           at:this.waStampOf(c.last_message_at || c.created_at), startedAt:this.waStampOf(c.created_at), status: c.status === 'needs_operator' ? 'needs_admin' : 'answered',
           aiEnabled:c.ai_enabled, unread:c.unread_count, handoffReason:c.handoff_reason, preview:c.last_message_preview || '', messages:[] };
         if (c.id !== selId) return base;
         const items = msgs.map(m => ({ id:m.id, ts:m.created_at, at:this.waStampOf(m.created_at).slice(11), text:m.text || '[' + m.message_type + ']',
           from: m.message_type === 'event' ? 'system' : (FROM[m.sender_type] || 'system'), status:m.status, error:m.error }))
           .concat(acts.map(a => ({ id:'a' + a.id, ts:a.created_at, at:this.waStampOf(a.created_at).slice(11), from:'action', tool:a.tool, ok:a.status === 'ok',
-            text:(a.result && a.result.summary) || a.tool, ref: a.entity_type ? { type:a.entity_type, id:a.entity_id } : null })))
+            text:(a.result && a.result.summary) || a.tool, ref: a.entity_type ? { type:a.entity_type, id: this.waRefId(a.entity_type, a.entity_id) } : null })))
           .sort((x, y) => x.ts.localeCompare(y.ts));
         return Object.assign(base, { messages:items });
       });
@@ -4982,13 +5084,17 @@ class Component extends DCLogic {
   async waLoadConn() {
     if (!this.waLive()) return;
     const r = await window.DentaAuth.callFunction('whatsapp', '/connection');
-    if (r.ok) this.setState({ waRemoteConn:r.connection, waMockAvailable:!!r.mockAvailable });
+    if (r.ok) {
+      this.setState({ waRemoteConn:r.connection, waMockAvailable:!!r.mockAvailable, waQrAvailable:!!r.qrAvailable });
+      if (r.connection && r.connection.pending) this.waQrPoll(true);
+    }
     const s = await window.DentaAuth.callFunction('whatsapp', '/ai-settings');
     if (s.ok && s.settings) this.setState({ waRemoteAi:s.settings });
   }
   waPoll(on) {
     clearInterval(this._waTimer);
     if (on && this.waLive()) { this.waLoadRemote(); this.waLoadConn(); this._waTimer = setInterval(() => this.waLoadRemote(), 8000); }
+    if (!on) this.waQrPoll(false);
   }
 
   // Имитация входящего (тестовый провайдер). В боевом режиме — POST /dev/inbound на сервер разработки.
@@ -5048,8 +5154,39 @@ class Component extends DCLogic {
       if (this.waLive()) { this.waLoadRemote(); window.DentaAuth.callFunction('whatsapp', '/conversations/' + id + '/read', {}); } else this.persist();
     });
   }
+  // Подключение по QR: сервер создаёт сессию в шлюзе, CRM опрашивает /qr, пока номер не будет привязан.
+  waQrPoll(on) {
+    clearInterval(this._waQrTimer);
+    if (!on) return;
+    const started = Date.now();
+    this._waQrTimer = setInterval(async () => {
+      if (Date.now() - started > 4 * 60 * 1000) { clearInterval(this._waQrTimer); this.setState({ waQrExpired:true }); return; }
+      const r = await window.DentaAuth.callFunction('whatsapp', '/qr');
+      if (!r.ok) { if (r.code === 'number_in_use') { clearInterval(this._waQrTimer); this.showToast(r.message); this.setState({ waQr:null }); this.waLoadConn(); } return; }
+      this.setState({ waQr:r.qr, waRemoteConn:r.connection });
+      if (r.connection && r.connection.connected) {
+        clearInterval(this._waQrTimer);
+        this.setState({ waQr:null, waForm:{} });
+        this.showToast('WhatsApp подключён · ' + (r.connection.phone || ''));
+      }
+    }, 2500);
+  }
+  waConnectQr() {
+    const f = this.state.waForm || {};
+    this.setState({ waBusy:true, waQrExpired:false });
+    return this.waApi('/connect', { provider:'qr', displayName:f.displayName }).then(r => {
+      this.setState({ waBusy:false });
+      if (!r.ok) return;
+      this.setState({ waQr:r.qr, waRemoteConn:r.connection });
+      this.waQrPoll(true);
+    });
+  }
   waConnect() {
     const f = this.state.waForm || {};
+    if ((f.provider || this.waDefaultProvider()) === 'qr') {
+      if (!this.waLive()) { this.showToast('Подключение по QR работает с сервером: заполните dentaline.config.js'); return; }
+      return this.waConnectQr();
+    }
     if (this.waLive()) {
       this.setState({ waBusy:true });
       return this.waApi('/connect', { provider:f.provider || 'meta_cloud', displayName:f.displayName, phoneNumberId:f.phoneNumberId, accountId:f.accountId,
@@ -5065,6 +5202,7 @@ class Component extends DCLogic {
       apiStatus:'ok', webhookStatus:'verified', webhookKey:waUid('wk'), lastCheckAt:nowStamp(), lastInboundAt:null, lastOutboundAt:null } }),
       'Тестовый провайдер подключён', { action:'подключил(а) WhatsApp (тестовый провайдер)', object:phone });
   }
+  waDefaultProvider() { return this.waLive() ? (this.state.waQrAvailable ? 'qr' : 'meta_cloud') : 'mock'; }
   waCheck() {
     if (this.waLive()) { this.setState({ waBusy:true }); return this.waApi('/check', {}).then(r => { this.setState({ waBusy:false, waRemoteConn: r.connection || this.state.waRemoteConn });
       if (r.ok) this.showToast(r.success ? 'Соединение в порядке · ' + r.check.latencyMs + ' мс' : 'API недоступен: ' + (r.check && r.check.error)); }); }
@@ -5074,7 +5212,7 @@ class Component extends DCLogic {
     this.setState({ confirm:{ title:'Отключить WhatsApp?', yesLabel:'Отключить',
       message:'Новые сообщения перестанут приходить в CRM, робот перестанет отвечать. История диалогов сохранится.',
       onYes: () => {
-        if (this.waLive()) return this.waApi('/disconnect', {}).then(r => { if (r.ok) this.setState({ waRemoteConn:r.connection, waVerifyToken:null }); });
+        if (this.waLive()) { this.waQrPoll(false); return this.waApi('/disconnect', {}).then(r => { if (r.ok) this.setState({ waRemoteConn:r.connection, waVerifyToken:null, waQr:null }); }); }
         this.mutate(st => ({ waConn:{ connected:false, disconnectedAt:nowStamp() } }), 'WhatsApp отключён', { action:'отключил(а) WhatsApp', object:(this.state.waConn || {}).phone || '' });
       } } });
   }
@@ -5431,7 +5569,7 @@ class Component extends DCLogic {
     const chair = chairId || this.freeChair(probe) || chairOf({ doctorId:docId }, this.state.chairs, this.state.doctors);
     const sv = this.service(w.serviceId);
     const cl = this.client(w.clientId);
-    const apptId = Math.max.apply(null, this.state.appointments.map(a => a.id)) + 1;
+    const apptId = nextApptId(this.state.appointments);
     this.mutate(st => ({
       appointments: st.appointments.concat([{ id:apptId, clientId:w.clientId, serviceId:w.serviceId, doctorId:docId,
         chairId:chair, date:iso, time:time, status:'confirmed', source:'admin',
@@ -5853,7 +5991,7 @@ class Component extends DCLogic {
     };
     const approveReq = (r) => {
       if (slotTaken(r)) { this.showToast('Это время уже занято. Выберите другое время.'); return; }
-      const apptId = Math.max.apply(null, s.appointments.map(a => a.id)) + 1;
+      const apptId = nextApptId(s.appointments);
       this.mutate(st => {
         let clients = st.clients;
         let client = st.clients.find(c => digitsOnly(c.phone) === digitsOnly(r.phone) || (r.tgId && c.tgId === r.tgId));
@@ -7133,7 +7271,7 @@ class Component extends DCLogic {
     }
     const sendReply = () => this.waReply(selDialog, s.replyDraft);
 
-    const PROVIDER_LABEL = { meta_cloud:'WhatsApp Cloud API (Meta)', mock:'Тестовый провайдер · разработка' };
+    const PROVIDER_LABEL = { meta_cloud:'WhatsApp Cloud API (Meta)', mock:'Тестовый провайдер · разработка', baileys:'WhatsApp по QR-коду' };
     const stampFmt = (v) => !v ? '—' : (String(v).length > 16 ? (() => { const d = this.waStampOf(v); return fmtStamp(d); })() : fmtStamp(v));
     const apiOk = conn.connected && (waLive ? conn.status === 'ok' : conn.apiStatus === 'ok');
     const whState = waLive ? conn.webhookStatus : conn.webhookStatus;
@@ -7150,11 +7288,12 @@ class Component extends DCLogic {
       { label:'Последняя проверка', value: stampFmt(conn.lastCheckAt), hasDot:false }
     ] : [];
     const f = s.waForm || {};
-    const formProvider = f.provider || (waLive ? 'meta_cloud' : 'mock');
+    const formProvider = f.provider || this.waDefaultProvider();
     const mockAllowed = waLive ? !!s.waMockAvailable : true;
-    const waProviderOpts = [['meta_cloud','WhatsApp Cloud API'],['mock','Тестовый провайдер']].map(([k,l]) => {
-      const disabled = (k === 'meta_cloud' && !waLive) || (k === 'mock' && !mockAllowed);
-      return { label:l, go: () => disabled ? this.showToast(k === 'meta_cloud' ? 'Нужен сервер: заполните dentaline.config.js' : 'Тестовый провайдер выключен на этом сервере') : this.setState({ waForm:Object.assign({}, f, { provider:k }) }),
+    const waProviderOpts = [['qr','По QR-коду'],['meta_cloud','WhatsApp Cloud API'],['mock','Тестовый провайдер']].map(([k,l]) => {
+      const disabled = ((k === 'meta_cloud' || k === 'qr') && !waLive) || (k === 'qr' && waLive && !s.waQrAvailable) || (k === 'mock' && !mockAllowed);
+      const why = !waLive && k !== 'mock' ? 'Нужен сервер: заполните dentaline.config.js' : (k === 'qr' ? 'На сервере не настроен шлюз WhatsApp (WA_GATEWAY_URL)' : 'Тестовый провайдер выключен на этом сервере');
+      return { label:l, go: () => disabled ? this.showToast(why) : this.setState({ waForm:Object.assign({}, f, { provider:k }) }),
         style: (formProvider === k ? 'background:var(--surface);color:var(--text);box-shadow:var(--shadow);' : 'background:transparent;color:var(--text-muted);') + (disabled ? 'opacity:0.45;cursor:not-allowed;' : '') };
     });
     const setF = (k) => (e) => this.setState({ waForm:Object.assign({}, s.waForm || {}, { [k]:e.target.value }) });
@@ -7185,14 +7324,19 @@ class Component extends DCLogic {
       statusStyle: conn.connected ? 'color:var(--green-fg);background:var(--green-bg);' : 'color:var(--text-muted);background:var(--surface-2);',
       headline: conn.connected ? (conn.displayName || 'WhatsApp') + ' · ' + (conn.phone || '') : 'WhatsApp не подключён',
       connRows: waConnRows,
-      hasWebhookUrl: !!conn.webhookUrl, webhookUrl: conn.webhookUrl || '',
+      hasWebhookUrl: !!conn.webhookUrl && conn.provider === 'meta_cloud', webhookUrl: conn.webhookUrl || '',
       hasVerifyToken: !!s.waVerifyToken, verifyToken: s.waVerifyToken || '',
       copyWebhook: () => { try { navigator.clipboard.writeText(conn.webhookUrl); this.showToast('Адрес вебхука скопирован'); } catch (e) {} },
-      providerOpts: waProviderOpts, isMetaForm: formProvider === 'meta_cloud', isMockForm: formProvider === 'mock',
+      providerOpts: waProviderOpts, isMetaForm: formProvider === 'meta_cloud', isMockForm: formProvider === 'mock', isQrForm: formProvider === 'qr',
+      qrPending: !conn.connected && (!!conn.pending || !!s.waQr), qrNotPending: !(!conn.connected && (!!conn.pending || !!s.waQr)),
+      qrHasImage: !!(s.waQr && s.waQr.qr) && !s.waQrExpired, qrBg: s.waQr && s.waQr.qr ? 'url(' + s.waQr.qr + ')' : 'none',
+      qrWaiting: !(s.waQr && s.waQr.qr) && !s.waQrExpired, qrExpired: !!s.waQrExpired,
+      qrStateText: s.waQrExpired ? 'QR-код устарел' : ({ starting:'Готовим QR-код…', reconnecting:'Устанавливаем соединение…', connected:'Номер привязан, завершаем…', logged_out:'Сессия сброшена — обновите QR' }[(s.waQr || {}).state] || 'Ожидаем сканирования'),
+      qrRefresh: () => this.waConnectQr(), qrCancel: () => this.waDisconnect(),
       form: { displayName:f.displayName || '', phoneNumberId:f.phoneNumberId || '', accountId:f.accountId || '', accessToken:f.accessToken || '', appSecret:f.appSecret || '' },
       onDisplayName:setF('displayName'), onPhoneNumberId:setF('phoneNumberId'), onAccountId:setF('accountId'), onAccessToken:setF('accessToken'), onAppSecret:setF('appSecret'),
       connect: () => this.waConnect(), check: () => this.waCheck(), disconnect: () => this.waDisconnect(),
-      busy: !!s.waBusy, connectLabel: s.waBusy ? 'Подключаем…' : 'Подключить WhatsApp',
+      busy: !!s.waBusy, connectLabel: s.waBusy ? 'Подключаем…' : (formProvider === 'qr' ? 'Показать QR-код' : 'Подключить WhatsApp'),
       test: { to:(s.waTest || {}).to || '', text:(s.waTest || {}).text || '' }, onTestTo:setTest('to'), onTestText:setTest('text'), testSend: () => this.waTestSend(),
       sim: { phone:sim.phone || '', name:sim.name || '', text:sim.text || '' }, onSimPhone:setSim('phone'), onSimName:setSim('name'), onSimText:setSim('text'),
       simSend: () => simSend(false), simRepeat: () => simSend(true), canRepeat: !!this._waLastExt,
@@ -8176,7 +8320,8 @@ class Component extends DCLogic {
       reminder2KnobStyle: s.reminders.h2 ? 'margin-left:12px;' : 'margin-left:0;',
       openNewTeam: () => this.setState({ modal:{ type:'team', id:null }, draft:{ name:'', email:'', role:'Manager' } }),
       viewAsRole:s.viewAsRole, onViewAsRole:(e) => this.setState({ viewAsRole:e.target.value, view: this.capsFor(e.target.value).indexOf(VIEW_CAP[s.view]) >= 0 ? s.view : 'dashboard' }),
-      canResetDemoData: s.viewAsRole === 'Owner',
+      // В режиме supabase сброс записал бы демо-пациентов в настоящие таблицы и удалил реальные — только демо.
+      canResetDemoData: s.viewAsRole === 'Owner' && !(s.workspace && s.workspace.mode === 'supabase' && !s.devPreviewName),
       resetEmptyClinic: () => this.setState({ confirm:{ title:'Очистить клинику', yesLabel:'Очистить', message:'Удалить записи, пациентов, заявки, задачи и журнал? Услуги, команда и настройки останутся.',
         onYes: () => this.mutate(() => Object.assign({}, clinicSeed(s.devPreviewName), { view:'dashboard', selectedApptId:null, selectedClientId:null, drawerApptId:null, modal:null, confirm:null,
           clients:[], appointments:[], requests:[], tasks:[], dialogs:[], activity:[], aiEvents:[], notifications:[], notifRead:[], blacklist:[] }), 'Клиника очищена') } }),
@@ -8323,7 +8468,7 @@ class Component extends DCLogic {
         this.mutate(st => ({ appointments: st.appointments.map(a => a.id === modal.id ? Object.assign({}, a, { clientId:draft.clientId, serviceId:draft.serviceId, doctorId:draft.doctorId || a.doctorId, chairId: draft.chairId || this.apptChair(a), date:draft.date, time:draft.time, comment:draft.comment, payment: Object.assign({}, a.payment, { cost }) }) : a), modal:null }), 'Изменения сохранены',
           { action:'изменил(а) запись', object:'Запись #' + modal.id + ' · ' + (cl ? cl.name : '—') });
       } else {
-        const id = Math.max(1000, ...this.state.appointments.map(a => a.id)) + 1;
+        const id = nextApptId(this.state.appointments);
         this.mutate(st => ({ appointments: st.appointments.concat([{ id, clientId:draft.clientId, serviceId:draft.serviceId, doctorId:draft.doctorId || (st.doctors[0]||{}).id, chairId: draft.chairId || chairOf({ doctorId: draft.doctorId }, st.chairs, st.doctors), date:draft.date, time:draft.time, status:'new', source:'admin', comment:draft.comment, createdAt:TODAY_ISO, payment:{ cost, paid:0, refunded:0, method:null, history:[] } }]), modal:null,
           waitlist: modal.waitlistId ? st.waitlist.map(w => w.id === modal.waitlistId ? Object.assign({}, w, { status:'placed', offeredApptId:id }) : w) : st.waitlist }),
           modal.waitlistId ? 'Пациент записан из листа ожидания' : 'Запись создана',

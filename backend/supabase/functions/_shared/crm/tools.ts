@@ -62,6 +62,32 @@ const addDaysIso = (iso: string, n: number) => { const d = new Date(iso + "T00:0
 const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
 const fail = (error: string, summary: string): ToolOutcome => ({ ok: false, error, summary });
 
+// ---------- явное подтверждение пациента ----------
+// \b в JS не работает с кириллицей, поэтому границы слова — через классы символов.
+const W = "[^а-яёa-z0-9]";
+const NEG_RE = new RegExp(`(^|${W})(нет|неа|не\\s+(надо|нужно|подходит|хочу|могу|удобно|получится)|отмен\\S*|передумал\\S*|друго[ея]\\s+(время|день)|позже|no|cancel)(${W}|$)`, "i");
+const YES_RE = new RegExp(`(^|${W})(да|ага|угу|ок|окей|ok|okay|yes|хорошо|подтверждаю|подтверждено|согласен|согласна|подходит|верно|записывайте|запишите|давайте|конечно|иә|ha)(${W}|$)|^\\s*(\\+|👍|✅)`, "i");
+export function confirmationOf(text: string): "yes" | "no" | "unclear" {
+  const t = ` ${text.toLowerCase().replace(/ё/g, "е")} `;
+  if (NEG_RE.test(t)) return "no";
+  return YES_RE.test(t.trim()) || YES_RE.test(t) ? "yes" : "unclear";
+}
+const isPlaceholderName = (n: string | null | undefined) => !n || /^\+?\d[\d\s()-]*$/.test(n.trim());
+
+async function convState(ctx: ToolContext): Promise<Record<string, any>> { // deno-lint-ignore no-explicit-any
+  const { data } = await ctx.db.from("conversations").select("agent_state").eq("id", ctx.conversationId).eq("company_id", ctx.companyId).maybeSingle();
+  return (data?.agent_state as Record<string, unknown>) ?? {};
+}
+async function setState(ctx: ToolContext, state: Record<string, unknown>) {
+  await ctx.db.from("conversations").update({ agent_state: state }).eq("id", ctx.conversationId).eq("company_id", ctx.companyId);
+}
+async function slotFree(ctx: ToolContext, doctorId: string, startsIso: string, durationMin: number): Promise<boolean> {
+  const start = new Date(startsIso).getTime(), end = start + durationMin * 60000;
+  const { data } = await ctx.db.from("appointments").select("starts_at, duration_min").eq("company_id", ctx.companyId).eq("doctor_id", doctorId)
+    .not("status", "in", "(cancelled,no_show)").gte("starts_at", new Date(start - 24 * 3600000).toISOString()).lt("starts_at", new Date(end).toISOString());
+  return !(data ?? []).some((b) => { const s = new Date(b.starts_at).getTime(); return s < end && s + b.duration_min * 60000 > start; });
+}
+
 async function ownPatient(ctx: ToolContext, id?: unknown): Promise<string | null> {
   const pid = str(id) || ctx.patientId;
   if (!pid) return null;
@@ -138,6 +164,11 @@ const handlers: Record<string, Handler> = {
     return { ok: true, data: list, summary: `Получены врачи (${list.length})` };
   },
 
+  async check_free_slots(ctx, a) {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str(a.date)) && !str(a.date_from)) a = { ...a, date_from: str(a.date), date_to: str(a.date) };
+    return await handlers.get_available_slots(ctx, a);
+  },
+
   async get_available_slots(ctx, a) {
     const serviceId = str(a.service_id);
     const { data: sv } = await ctx.db.from("services").select("id, name, duration_min, doctor_ids").eq("company_id", ctx.companyId).eq("id", serviceId).eq("is_active", true).maybeSingle();
@@ -154,6 +185,7 @@ const handlers: Record<string, Handler> = {
     else if (sv.doctor_ids?.length) dq = dq.in("id", sv.doctor_ids);
     const { data: docs } = await dq;
     if (!docs?.length) return fail("no_doctors", "Свободные слоты: нет врачей для услуги");
+    if (from > lastDay) return { ok: true, data: { service: sv.name, duration_min: sv.duration_min, slots: [], note: `Запись открыта до ${lastDay}` }, summary: "Свободные слоты: дата за горизонтом записи" };
 
     const rangeStart = localToUtc(from, "00:00", ctx.timezone).toISOString(), rangeEnd = localToUtc(addDaysIso(to, 1), "00:00", ctx.timezone).toISOString();
     const { data: busy } = await ctx.db.from("appointments").select("doctor_id, starts_at, duration_min").eq("company_id", ctx.companyId)
@@ -182,24 +214,87 @@ const handlers: Record<string, Handler> = {
       }
     }
     // Память диалога: какие слоты предложены — чтобы «давайте 17:30» связалось с конкретным врачом.
-    await ctx.db.from("conversations").update({ agent_state: { offered_slots: slots, service_id: sv.id } }).eq("id", ctx.conversationId).eq("company_id", ctx.companyId);
+    // Новый поиск сбрасывает ожидающее подтверждение: пациент выбирает заново.
+    await setState(ctx, { offered_slots: slots, service_id: sv.id, service_name: sv.name });
     return { ok: true, data: { service: sv.name, duration_min: sv.duration_min, slots }, summary: `Получены свободные слоты: ${slots.length ? slots.map((s) => s.time).slice(0, 4).join(", ") : "нет"}` };
   },
 
+  // Шаг 1 из 2: зафиксировать выбранный пациентом слот и попросить подтверждение.
+  // Слот должен быть из последнего check_free_slots и всё ещё свободен.
+  async propose_appointment(ctx, a) {
+    const pid = await ownPatient(ctx, a.patient_id);
+    if (!pid) return fail("patient_not_found", "Предложение записи: пациент не найден");
+    const st = await convState(ctx);
+    const date = str(a.date), time = str(a.time), doctorId = str(a.doctor_id), serviceId = str(a.service_id) || st.service_id;
+    const slot = (st.offered_slots ?? []).find((s: { date: string; time: string; doctor_id: string }) =>
+      s.date === date && s.time === time && (!doctorId || s.doctor_id === doctorId));
+    if (!slot || (st.service_id && serviceId !== st.service_id)) return fail("slot_not_offered", "Предложение записи: время не из check_free_slots — сначала проверьте свободные окна");
+    const { data: sv } = await ctx.db.from("services").select("id, name, duration_min, price, ai_bookable").eq("company_id", ctx.companyId).eq("id", serviceId).eq("is_active", true).maybeSingle();
+    if (!sv) return fail("service_not_found", "Предложение записи: услуга не найдена");
+    if (!sv.ai_bookable) return fail("service_requires_admin", "Предложение записи: услугу записывает только администратор");
+    if (!(await slotFree(ctx, slot.doctor_id, slot.starts_at, sv.duration_min))) return fail("slot_taken", "Предложение записи: время уже занято");
+    const { data: pat } = await ctx.db.from("patients").select("full_name, phone").eq("company_id", ctx.companyId).eq("id", pid).single();
+    const name = str(a.patient_name) || (isPlaceholderName(pat?.full_name) ? "" : String(pat?.full_name));
+    if (!name) return fail("patient_name_required", "Предложение записи: не известно имя пациента — спросите имя");
+    const pending = { service_id: sv.id, service_name: sv.name, price: sv.price, duration_min: sv.duration_min, doctor_id: slot.doctor_id,
+      doctor_name: slot.doctor_name, date, time, starts_at: slot.starts_at, patient_id: pid, patient_name: name.slice(0, 120),
+      phone: str(a.phone) || pat?.phone || null, proposed_at: new Date().toISOString(), proposed_on_message: ctx.triggerMessageId };
+    await setState(ctx, { ...st, pending_booking: pending });
+    return { ok: true, entity: { type: "patient", id: pid }, summary: `Ждёт подтверждения → ${date} ${time}`,
+      data: { pending_booking: pending, instruction: "Запись ЕЩЁ НЕ создана. Перечислите пациенту услугу, дату, время, врача, имя и телефон и спросите: «Подтверждаете запись?». create_appointment вызывайте только после ответа пациента «да»." } };
+  },
+
+  // Шаг 2 из 2: создать запись. Сервер сам проверяет, что подтверждение пришло
+  // ОТДЕЛЬНЫМ сообщением пациента после предложения — модель не может это обойти.
   async create_appointment(ctx, a) {
+    if (a.confirmed !== true) return fail("not_confirmed", "Запись не создана: нет подтверждения пациента (confirmed !== true)");
     const pid = await ownPatient(ctx, a.patient_id);
     if (!pid) return fail("patient_not_found", "Создание записи: пациент не найден");
-    const { data: sv } = await ctx.db.from("services").select("id, duration_min, ai_bookable").eq("company_id", ctx.companyId).eq("id", str(a.service_id)).maybeSingle();
+    const st = await convState(ctx), p = st.pending_booking;
+    if (!p) return fail("no_pending_booking", "Запись не создана: сначала propose_appointment и подтверждение пациента");
+    if (p.patient_id !== pid) return fail("patient_mismatch", "Запись не создана: другой пациент");
+    for (const [k, v] of [["service_id", a.service_id], ["doctor_id", a.doctor_id], ["date", a.date], ["time", a.time]] as const) {
+      if (str(v) && str(v) !== p[k]) return fail("booking_mismatch", `Запись не создана: ${k} отличается от подтверждаемого слота — предложите слот заново`);
+    }
+    if (!ctx.triggerMessageId || p.proposed_on_message === ctx.triggerMessageId) {
+      return fail("confirmation_required_from_patient", "Запись не создана: подтверждение должно прийти следующим сообщением пациента");
+    }
+    if (Date.now() - Date.parse(p.proposed_at) > 2 * 3600000) {
+      await setState(ctx, { ...st, pending_booking: null });
+      return fail("pending_expired", "Запись не создана: подтверждение устарело — проверьте окна заново");
+    }
+    // Ответы пациента после предложения: нужен явный «да» и ни одного отказа.
+    const { data: replies } = await ctx.db.from("messages").select("id, text").eq("company_id", ctx.companyId).eq("conversation_id", ctx.conversationId)
+      .eq("direction", "incoming").gte("created_at", new Date(Date.parse(p.proposed_at) - 1000).toISOString()).order("created_at");
+    const after = (replies ?? []).filter((m) => m.id !== p.proposed_on_message);
+    if (!after.some((m) => m.id === ctx.triggerMessageId)) return fail("confirmation_required_from_patient", "Запись не создана: нет ответа пациента после предложения");
+    const verdicts = after.map((m) => confirmationOf(m.text ?? ""));
+    if (verdicts.includes("no")) { await setState(ctx, { ...st, pending_booking: null }); return fail("patient_declined", "Запись не создана: пациент отказался или хочет другое время"); }
+    if (!verdicts.includes("yes")) return fail("confirmation_not_explicit", "Запись не создана: ответ пациента не похож на подтверждение — спросите «да» или «нет»");
+
+    const { data: sv } = await ctx.db.from("services").select("id, duration_min, ai_bookable").eq("company_id", ctx.companyId).eq("id", p.service_id).eq("is_active", true).maybeSingle();
     if (!sv) return fail("service_not_found", "Создание записи: услуга не найдена");
     if (!sv.ai_bookable) return fail("service_requires_admin", "Создание записи: услуга требует подтверждения администратора");
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(str(a.date)) || !/^\d{2}:\d{2}$/.test(str(a.time))) return fail("bad_datetime", "Создание записи: неверные дата или время");
-    const starts = localToUtc(str(a.date), str(a.time), ctx.timezone);
+    const { data: pat } = await ctx.db.from("patients").select("full_name").eq("company_id", ctx.companyId).eq("id", pid).single();
+    if (p.patient_name && isPlaceholderName(pat?.full_name)) {
+      await ctx.db.from("patients").update({ full_name: p.patient_name, updated_at: new Date().toISOString() }).eq("company_id", ctx.companyId).eq("id", pid);
+      await ctx.db.from("conversations").update({ contact_name: p.patient_name }).eq("id", ctx.conversationId).eq("company_id", ctx.companyId);
+    }
+    const comment = [str(a.comment) || "Записан роботом в WhatsApp", p.phone ? `тел. ${p.phone}` : ""].filter(Boolean).join(" · ");
     const { data: id, error } = await ctx.db.rpc("crm_book_slot", {
-      p_company: ctx.companyId, p_patient: pid, p_doctor: str(a.doctor_id), p_service: sv.id, p_starts: starts.toISOString(),
-      p_duration: sv.duration_min, p_source: "whatsapp_ai", p_conversation: ctx.conversationId, p_actor_type: "ai", p_actor: null, p_comment: str(a.comment) || null,
+      p_company: ctx.companyId, p_patient: pid, p_doctor: p.doctor_id, p_service: sv.id, p_starts: p.starts_at,
+      p_duration: sv.duration_min, p_source: "whatsapp_ai", p_conversation: ctx.conversationId, p_actor_type: "ai", p_actor: null, p_comment: comment,
     });
-    if (error) return fail(error.message.includes("slot_taken") ? "slot_taken" : error.message, error.message.includes("slot_taken") ? "Слот уже занят — запись не создана" : "Создание записи: ошибка");
-    return { ok: true, data: { appointment_id: id, date: str(a.date), time: str(a.time) }, entity: { type: "appointment", id }, summary: `Создана запись → ${str(a.date)} ${str(a.time)}` };
+    if (error) {
+      const taken = error.message.includes("slot_taken");
+      if (taken) await setState(ctx, { ...st, pending_booking: null });
+      return fail(taken ? "slot_taken" : error.message, taken ? "Слот уже занят — запись не создана" : "Создание записи: ошибка");
+    }
+    const { data: row } = await ctx.db.from("appointments").select("id, crm_ref, status").eq("company_id", ctx.companyId).eq("id", id).single();
+    if (!row) return fail("appointment_not_saved", "Создание записи: запись не найдена после сохранения");
+    const booked = { appointment_id: row.id, number: row.crm_ref, status: row.status, date: p.date, time: p.time, service: p.service_name, doctor: p.doctor_name, patient_name: p.patient_name };
+    await setState(ctx, { last_booking: booked });
+    return { ok: true, data: booked, entity: { type: "appointment", id: row.id }, summary: `Создана запись №${row.crm_ref} → ${p.date} ${p.time}` };
   },
 
   async update_appointment(ctx, a) {
@@ -288,9 +383,10 @@ export const TOOL_SCHEMAS = [
   { name: "get_patient", description: "Карточка пациента и последние заметки", parameters: S({ patient_id: T }) },
   { name: "get_services", description: "Список услуг клиники с ценой и длительностью", parameters: S({ query: T }) },
   { name: "get_doctors", description: "Врачи клиники, при необходимости — для услуги", parameters: S({ service_id: T }) },
-  { name: "get_available_slots", description: "Свободное время для услуги. Используй перед любым предложением времени", parameters: S({ service_id: T, date_from: D, date_to: D, time_from: H, time_to: H, doctor_id: T, limit: { type: "integer" } }, ["service_id"]) },
-  { name: "create_appointment", description: "Создать запись. Только после явного согласия пациента на конкретное время из get_available_slots", parameters: S({ service_id: T, doctor_id: T, date: D, time: H, patient_id: T, comment: T }, ["service_id", "doctor_id", "date", "time"]) },
-  { name: "update_appointment", description: "Перенести запись пациента на новое время (проверь слот через get_available_slots)", parameters: S({ appointment_id: T, date: D, time: H, doctor_id: T }, ["appointment_id", "date", "time"]) },
+  { name: "check_free_slots", description: "Реальные свободные окна для услуги по графику врачей и существующим записям. Вызывай перед любым упоминанием времени", parameters: S({ service_id: T, date: D, date_from: D, date_to: D, time_from: H, time_to: H, doctor_id: T, limit: { type: "integer" } }, ["service_id"]) },
+  { name: "propose_appointment", description: "Пациент выбрал окно из check_free_slots: зафиксировать его и затем спросить подтверждение. Запись НЕ создаёт", parameters: S({ service_id: T, doctor_id: T, date: D, time: H, patient_name: T, phone: T, patient_id: T }, ["service_id", "date", "time", "patient_name"]) },
+  { name: "create_appointment", description: "Создать запись после того, как пациент отдельным сообщением ответил «да» на propose_appointment. confirmed должен быть true", parameters: S({ confirmed: { type: "boolean" }, service_id: T, doctor_id: T, date: D, time: H, patient_id: T, comment: T }, ["confirmed", "service_id", "doctor_id", "date", "time"]) },
+  { name: "update_appointment", description: "Перенести запись пациента на новое время (проверь слот через check_free_slots)", parameters: S({ appointment_id: T, date: D, time: H, doctor_id: T }, ["appointment_id", "date", "time"]) },
   { name: "cancel_appointment", description: "Отменить запись пациента", parameters: S({ appointment_id: T, reason: T }, ["appointment_id"]) },
   { name: "add_patient_note", description: "Сохранить важную информацию о пациенте (жалоба, пожелание)", parameters: S({ text: T, kind: { type: "string", enum: ["note", "complaint", "preference", "medical"] }, patient_id: T }, ["text"]) },
   { name: "create_task", description: "Создать задачу персоналу", parameters: S({ title: T, description: T, due_at: T }, ["title"]) },

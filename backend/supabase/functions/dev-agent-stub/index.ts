@@ -18,24 +18,35 @@ function targetDate(text: string, today: string): string {
 const call = (name: string, args: Record<string, unknown>) => ({ tool_calls: [{ id: crypto.randomUUID(), name, arguments: args }] });
 
 Deno.serve(async (req) => {
-  const { messages, company } = await req.json() as { messages: M[]; company: { timezone: string } };
+  const { messages, company, patient } = await req.json() as { messages: M[]; company: { timezone: string }; patient?: { name?: string } };
   const lastUser = [...messages].reverse().find((m) => m.role === "user")?.content.toLowerCase() ?? "";
   const lastIdx = messages.map((m) => m.role).lastIndexOf("user");
   const tools = messages.slice(lastIdx + 1).filter((m) => m.role === "tool").map((m) => ({ name: m.name!, out: JSON.parse(m.content) }));
   const got = (n: string) => tools.find((t) => t.name === n)?.out;
   const state = messages.find((m) => m.role === "system" && m.content.startsWith("Состояние диалога:"));
-  const offered = state ? JSON.parse(state.content.replace("Состояние диалога: ", "")).offered_slots ?? [] : [];
+  const stObj = state ? JSON.parse(state.content.replace("Состояние диалога: ", "")) : {};
+  const offered = stObj.offered_slots ?? [], pending = stObj.pending_booking ?? null;
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: company.timezone }).format(new Date());
+  const patientName = patient?.name || "Пациент";
 
-  // Выбор времени из ранее предложенных.
+  // Ответ на «Подтверждаете запись?». Сервер сам решает, считать ли текст подтверждением.
+  if (pending) {
+    const r = got("create_appointment");
+    if (!r) return Response.json(call("create_appointment", { confirmed: true, service_id: pending.service_id, doctor_id: pending.doctor_id, date: pending.date, time: pending.time }));
+    if (r.ok) return Response.json({ reply: `Вы записаны: ${r.data.service}, ${r.data.date} в ${r.data.time}. Номер записи ${r.data.number}.` });
+    if (r.error === "patient_declined") return Response.json({ reply: "Хорошо, не записываю. Подобрать другое время?" });
+    if (r.error === "slot_taken") return Response.json({ reply: "Это время только что заняли. Подобрать другое?" });
+    return Response.json({ reply: `Подтверждаете запись: ${pending.service_name}, ${pending.date} в ${pending.time}? Ответьте «Да» или «Нет».` });
+  }
+
+  // Выбор времени из ранее предложенных → propose_appointment → вопрос о подтверждении.
   const tm = lastUser.match(/\b(\d{1,2})[:.](\d{2})\b/);
   if (tm && offered.length && !/перен/.test(lastUser)) {
     const t = `${tm[1].padStart(2, "0")}:${tm[2]}`, slot = offered.find((s: { time: string }) => s.time === t);
-    const svc = state ? JSON.parse(state.content.replace("Состояние диалога: ", "")).service_id : null;
-    if (slot && !got("create_appointment")) return Response.json(call("create_appointment", { service_id: svc, doctor_id: slot.doctor_id, date: slot.date, time: slot.time }));
-    const r = got("create_appointment");
-    if (r?.ok) return Response.json({ reply: `Записала вас на ${r.data.date} в ${r.data.time}.` });
-    if (r) return Response.json({ reply: "Это время только что заняли. Подобрать другое?" });
+    const pr = got("propose_appointment");
+    if (slot && !pr) return Response.json(call("propose_appointment", { service_id: stObj.service_id, doctor_id: slot.doctor_id, date: slot.date, time: slot.time, patient_name: patientName }));
+    if (pr?.ok) { const p = pr.data.pending_booking; return Response.json({ reply: `${p.service_name}, ${p.date} в ${p.time}, врач ${p.doctor_name}, на имя ${p.patient_name}, тел. ${p.phone}. Подтверждаете запись?` }); }
+    if (pr) return Response.json({ reply: "Это время уже недоступно. Подобрать другое?" });
   }
   if (/отмен/.test(lastUser)) {
     const ap = got("get_patient_appointments");
@@ -49,8 +60,8 @@ Deno.serve(async (req) => {
     if (!ap) return Response.json(call("get_patient_appointments", {}));
     if (!ap.data?.length) return Response.json({ reply: "Не нашла у вас активных записей." });
     const date = targetDate(lastUser, today), time = tm ? `${tm[1].padStart(2, "0")}:${tm[2]}` : null;
-    const sl = got("get_available_slots");
-    if (!sl) return Response.json(call("get_available_slots", { service_id: ap.data[0].service_id, date_from: date, ...(time ? { time_from: time } : {}) }));
+    const sl = got("check_free_slots");
+    if (!sl) return Response.json(call("check_free_slots", { service_id: ap.data[0].service_id, date_from: date, ...(time ? { time_from: time } : {}) }));
     const exact = time ? sl.data.slots.find((s: { time: string }) => s.time === time) : sl.data.slots[0];
     if (!exact) return Response.json({ reply: `На это время мест нет. Есть: ${sl.data.slots.map((s: { time: string }) => s.time).join(", ") || "—"}.` });
     if (!got("update_appointment")) return Response.json(call("update_appointment", { appointment_id: ap.data[0].id, date: exact.date, time: exact.time, doctor_id: exact.doctor_id }));
@@ -61,8 +72,8 @@ Deno.serve(async (req) => {
     if (!sv) return Response.json(call("get_services", {}));
     const s = sv.data.find((x: { name: string }) => /чистк/.test(lastUser) ? /чистк/i.test(x.name) : /кариес/.test(lastUser) ? /кариес/i.test(x.name) : /консульт/i.test(x.name)) ?? sv.data[0];
     const after = lastUser.match(/после\s+(\d{1,2})/);
-    const sl = got("get_available_slots");
-    if (!sl) return Response.json(call("get_available_slots", { service_id: s.id, date_from: targetDate(lastUser, today), ...(after ? { time_from: `${after[1].padStart(2, "0")}:00` } : {}), limit: 2 }));
+    const sl = got("check_free_slots");
+    if (!sl) return Response.json(call("check_free_slots", { service_id: s.id, date_from: targetDate(lastUser, today), ...(after ? { time_from: `${after[1].padStart(2, "0")}:00` } : {}), limit: 2 }));
     if (!sl.data.slots.length) return Response.json({ reply: "На этот день свободного времени нет. Посмотреть другой день?" });
     return Response.json({ reply: `Есть ${sl.data.slots.map((x: { time: string }) => x.time).join(" и ")}. Какое время вам удобнее?` });
   }

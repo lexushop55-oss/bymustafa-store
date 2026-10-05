@@ -3,6 +3,8 @@
 // членства, НЕ из тела запроса; все выборки — .eq(company_id).
 //
 //   GET  /connection                  статус подключения (без секретов)
+//   POST /connect   {provider:'qr'}   начать подключение по QR-коду (Owner/Admin)
+//   GET  /qr                          текущий QR / состояние сессии; при сканировании активирует номер
 //   POST /connect                     подключить номер (Owner/Admin). Секреты → Vault
 //   POST /check                       проверить API провайдера
 //   POST /test        {to,text}       тестовая отправка
@@ -17,7 +19,8 @@
 
 import { corsHeaders, errorResponse, HttpError, json } from "../_shared/http.ts";
 import { type CompanyContext, logActivity, requireCompanyMember } from "../_shared/tenant.ts";
-import { CONNECTION_COLUMNS, connectionOfCompany, getAdapter, loadSecrets, secretName } from "../_shared/whatsapp/index.ts";
+import { activateQrConnection, CONNECTION_COLUMNS, connectionOfCompany, getAdapter, loadSecrets, secretName } from "../_shared/whatsapp/index.ts";
+import { gatewayConfigured, sessionView, startSession } from "../_shared/whatsapp/baileys.ts";
 import { mockEnabled } from "../_shared/whatsapp/mock.ts";
 import { deliver, sendOutgoing } from "../_shared/whatsapp/outbound.ts";
 import { processInbound } from "../_shared/whatsapp/inbound.ts";
@@ -37,7 +40,7 @@ function publicView(c: WhatsAppConnection | null, extra: Record<string, unknown>
   if (!c) return { connected: false };
   const r = c as unknown as Record<string, unknown>;
   return {
-    connected: !!c.is_active, provider: c.provider, phone: c.phone_e164, displayName: c.display_name,
+    connected: !!c.is_active, pending: !c.is_active && c.provider === "baileys" && r.status !== "not_configured", provider: c.provider, phone: c.phone_e164, displayName: c.display_name,
     status: r.status, webhookStatus: r.webhook_status, connectedAt: r.connected_at, lastInboundAt: r.last_inbound_at,
     lastOutboundAt: r.last_outbound_at, lastError: r.last_error, lastCheckAt: r.last_check_at,
     webhookUrl: c.webhook_key && WEBHOOK_BASE() ? `${WEBHOOK_BASE()}/whatsapp-webhook/${c.webhook_key}` : null,
@@ -72,7 +75,47 @@ Deno.serve(async (req) => {
 
     if (route === "/connection" && req.method === "GET") {
       const ctx = await requireCompanyMember(req);
-      return json(req, { success: true, connection: publicView(await fullRow(ctx)), mockAvailable: mockEnabled() });
+      return json(req, { success: true, connection: publicView(await fullRow(ctx)), mockAvailable: mockEnabled(), qrAvailable: gatewayConfigured() });
+    }
+
+    if (route === "/connect" && req.method === "POST" && body.provider === "qr") {
+      const ctx = await requireCompanyMember(req, [...MANAGE]);
+      if (!gatewayConfigured()) throw new HttpError(400, "Подключение по QR не настроено на сервере (WA_GATEWAY_URL)", "no_gateway");
+      if (!WEBHOOK_BASE()) throw new HttpError(500, "На сервере не задан PUBLIC_WEBHOOK_BASE_URL", "misconfigured");
+      const existing = await connectionOfCompany(ctx.db, ctx.companyId);
+      if (existing?.is_active) throw new HttpError(409, "WhatsApp уже подключён. Сначала отключите текущий номер", "already_connected");
+      if (existing?.external_id && existing.provider !== "baileys") await getAdapter(existing.provider).disconnect(existing, await loadSecrets(ctx.db, existing)).catch(() => {});
+      const sessionId = existing?.provider === "baileys" && existing.external_id ? existing.external_id : randomHex(16);
+      const signing = randomHex(24), appName = secretName(ctx.companyId, "app_secret");
+      const { error: vErr } = await ctx.db.rpc("wa_put_secret", { p_name: appName, p_secret: signing });
+      if (vErr) throw new HttpError(500, "Не удалось сохранить секрет: " + vErr.message, "vault_error");
+      const webhookKey = existing?.webhook_key ?? randomHex(24), now = new Date().toISOString();
+      const { error } = await ctx.db.from("tenant_integrations").upsert({
+        tenant_id: ctx.companyId, type: "whatsapp", provider: "baileys", external_id: sessionId, account_id: null, phone_e164: null,
+        display_name: String(body.displayName || "").trim() || null, secret_ref: null, app_secret_ref: appName, verify_token_ref: null,
+        webhook_key: webhookKey, is_active: false, status: "degraded", webhook_status: "waiting", connected_at: null, disconnected_at: null,
+        last_error: null, updated_at: now,
+      }, { onConflict: "tenant_id,type" });
+      if (error) throw new HttpError(500, "Подключение не сохранено: " + error.message, "db_error");
+      const view = await startSession(sessionId, `${WEBHOOK_BASE()}/whatsapp-webhook/${webhookKey}`, signing)
+        .catch((e) => { throw new HttpError(502, (e as Error).message, "gateway_error"); });
+      await logActivity(ctx.db, ctx.companyId, ctx.userId, "whatsapp_qr_started", {});
+      return json(req, { success: true, qr: view, connection: publicView(await fullRow(ctx)) });
+    }
+
+    if (route === "/qr" && req.method === "GET") {
+      const ctx = await requireCompanyMember(req, [...MANAGE]);
+      const conn = await fullRow(ctx);
+      if (!conn || conn.provider !== "baileys" || !conn.external_id) throw new HttpError(400, "Подключение по QR не начато", "not_started");
+      const view = await sessionView(conn.external_id).catch((e) => { throw new HttpError(502, (e as Error).message, "gateway_error"); });
+      if (view.state === "connected" && !conn.is_active) {
+        const r = await activateQrConnection(ctx.db, conn, view.phone ? toE164(view.phone) : null, view.name);
+        if (!r.ok) {
+          await getAdapter("baileys").disconnect(conn, await loadSecrets(ctx.db, conn));
+          throw new HttpError(409, r.error, "number_in_use");
+        }
+      }
+      return json(req, { success: true, qr: view, connection: publicView(await fullRow(ctx)) });
     }
 
     if (route === "/connect" && req.method === "POST") {
@@ -83,8 +126,8 @@ Deno.serve(async (req) => {
       const verifyToken = randomHex(16);
       const appSecret = provider === "mock" ? randomHex(24) : String(body.appSecret ?? "").trim();
       const accessToken = provider === "mock" ? "mock" : String(body.accessToken ?? "").trim();
-      if (provider === "meta_cloud" && (!accessToken || !appSecret || !body.phoneNumberId)) {
-        throw new HttpError(400, "Нужны Phone number ID, постоянный токен доступа и App secret", "bad_request");
+      if (provider === "meta_cloud" && (!accessToken || !appSecret || !body.phoneNumberId || !body.accountId)) {
+        throw new HttpError(400, "Нужны Phone number ID, WhatsApp Business Account ID, постоянный токен доступа и App secret", "bad_request");
       }
       const adapter = getAdapter(provider);
       const res = await adapter.connect({ phoneNumberId: body.phoneNumberId, accountId: body.accountId, accessToken, appSecret, displayName: body.displayName },

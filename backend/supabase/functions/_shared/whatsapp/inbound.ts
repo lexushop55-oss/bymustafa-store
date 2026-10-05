@@ -16,11 +16,27 @@ export interface InboundResult {
   patientId: string | null;
   patientCreated: boolean;
   messageId: string | null;
-  ai: "replied" | "handed_off" | "disabled" | "operator" | "error" | "skipped";
+  ai: "replied" | "handed_off" | "disabled" | "operator" | "error" | "skipped" | "queued";
   replyStatus?: string;
 }
 
 const FALLBACK_REPLY = "Спасибо! Передала ваше сообщение администратору — он ответит в ближайшее время.";
+const LOCK_SEC = 120;
+
+// Один запуск робота на диалог одновременно. Атомарно: UPDATE с условием в WHERE.
+async function claimAgent(db: SupabaseClient, convId: string): Promise<boolean> {
+  const now = new Date(), until = new Date(now.getTime() + LOCK_SEC * 1000).toISOString();
+  const { data } = await db.from("conversations").update({ agent_lock_until: until }).eq("id", convId)
+    .or(`agent_lock_until.is.null,agent_lock_until.lt.${now.toISOString()}`).select("id");
+  return !!data?.length;
+}
+const releaseAgent = (db: SupabaseClient, convId: string) => db.from("conversations").update({ agent_lock_until: null }).eq("id", convId);
+
+async function latestIncoming(db: SupabaseClient, convId: string): Promise<string | null> {
+  const { data } = await db.from("messages").select("id").eq("conversation_id", convId).eq("direction", "incoming")
+    .order("created_at", { ascending: false }).order("id", { ascending: false }).limit(1).maybeSingle();
+  return data?.id ?? null;
+}
 
 export async function processInbound(db: SupabaseClient, conn: WhatsAppConnection, msg: NormalizedMessage): Promise<InboundResult> {
   const companyId = conn.tenant_id; // компания — из подключения, не из номера пациента
@@ -78,9 +94,35 @@ export async function processInbound(db: SupabaseClient, conn: WhatsAppConnectio
     return { ...base, ai: "handed_off", replyStatus: r.status };
   }
 
-  // 6. Агент + инструменты CRM. Любая ошибка → передать оператору, диалог не ломается.
+  // 6. Агент + инструменты CRM. Один запуск на диалог: если робот уже отвечает, это сообщение
+  // подхватит текущий запуск (после ответа он проверяет новые входящие). Никаких двух параллельных запусков.
+  if (!(await claimAgent(db, conv.id))) return { ...base, ai: "queued" };
+  let trigger = saved.id, outcome: InboundResult = { ...base, ai: "skipped" };
+  for (let round = 0; round < 4; round++) {
+    try {
+      outcome = await answerOnce(db, conn, { ...ctx, triggerMessageId: trigger }, tenant?.name ?? "", msg.phone, base, settings);
+    } finally {
+      await releaseAgent(db, conv.id);
+    }
+    if (outcome.ai !== "replied") break;
+    // Пока робот отвечал, пациент мог написать ещё. Проверяем ПОСЛЕ снятия блокировки, чтобы не потерять сообщение,
+    // чей собственный запуск получил «queued».
+    const last = await latestIncoming(db, conv.id);
+    if (!last || last === trigger) break;
+    const { data: c2 } = await db.from("conversations").select("ai_enabled, status").eq("id", conv.id).single();
+    if (!c2?.ai_enabled || c2.status === "needs_operator") break;
+    if (!(await claimAgent(db, conv.id))) break; // уже подхватил другой запуск
+    trigger = last;
+  }
+  return outcome;
+}
+
+async function answerOnce(db: SupabaseClient, conn: WhatsAppConnection, ctx: ToolContext, tenantName: string, phone: string,
+  base: InboundResult, settings: ToolContext["settings"]): Promise<InboundResult> {
+  const companyId = ctx.companyId, conv = { id: ctx.conversationId }, patientId = ctx.patientId, saved = { id: ctx.triggerMessageId };
+  const msg = { phone };
   try {
-    const run = await runAgent(ctx, tenant?.name ?? "");
+    const run = await runAgent(ctx, tenantName);
     if (run.error || !run.reply) throw new Error(run.error ?? "Пустой ответ робота");
     const r = await sendOutgoing(db, conn, { companyId, conversationId: conv.id, patientId, to: msg.phone, text: run.reply, senderType: "ai" });
     await db.from("ai_actions").insert({ company_id: companyId, conversation_id: conv.id, trigger_message_id: saved.id,

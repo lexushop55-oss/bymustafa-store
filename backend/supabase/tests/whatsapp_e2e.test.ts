@@ -44,17 +44,46 @@ Deno.test("TEST 1 · входящее → CRM → пациент → ответ 
   assertEquals(out.sender_type, "ai"); assertEquals(out.status, "sent");
 });
 
-Deno.test("TEST 2 · запись через слоты", async () => {
+Deno.test("TEST 2 · запись: выбор окна → БЕЗ подтверждения записи нет → «Да» → запись", async () => {
   const r1 = await inbound(A, "Хочу записаться завтра на чистку после 16:00");
   assertEquals(r1.result.ai, "replied");
   const offer = await lastOut(A, conv);
   const time = offer.text.match(/\d{2}:\d{2}/)![0];
+
+  // Пациент выбрал время, но ещё НЕ подтвердил → appointment НЕ создаётся.
   const r2 = await inbound(A, time);
   assertEquals(r2.result.ai, "replied");
-  const { data: appts } = await A.sb.from("appointments").select("id, source").eq("conversation_id", conv);
+  assert(/подтвержда/i.test((await lastOut(A, conv)).text), "робот должен спросить подтверждение");
+  const { data: none } = await A.sb.from("appointments").select("id").eq("conversation_id", conv);
+  assertEquals(none!.length, 0);
+
+  // Неясный ответ тоже не подтверждение.
+  await inbound(A, "а сколько стоит?");
+  const { data: still } = await A.sb.from("appointments").select("id").eq("conversation_id", conv);
+  assertEquals(still!.length, 0);
+
+  // Явное «Да» → запись создана, номер вернулся пациенту.
+  const r3 = await inbound(A, "Да");
+  assertEquals(r3.result.ai, "replied");
+  const { data: appts } = await A.sb.from("appointments").select("id, source, crm_ref, patient_id").eq("conversation_id", conv);
   assertEquals(appts!.length, 1); assertEquals(appts![0].source, "whatsapp_ai");
+  assert((await lastOut(A, conv)).text.includes(appts![0].crm_ref), "в ответе должен быть номер записи");
+  const { data: pat } = await A.sb.from("patients").select("id").eq("id", appts![0].patient_id);
+  assertEquals(pat!.length, 1);
   const { data: acts } = await A.sb.from("ai_actions").select("tool, status").eq("conversation_id", conv);
-  for (const t of ["get_services", "get_available_slots", "create_appointment", "send_whatsapp_message"]) assert(acts!.some((a) => a.tool === t && a.status === "ok"), t);
+  for (const t of ["get_services", "check_free_slots", "propose_appointment", "create_appointment", "send_whatsapp_message"]) assert(acts!.some((a) => a.tool === t && a.status === "ok"), t);
+});
+
+Deno.test("TEST 2b · отказ «Нет» → записи нет", async () => {
+  const phone2 = "7998" + String(Date.now()).slice(-7);
+  const say = (text: string) => A.call("/dev/inbound", { from: phone2, name: "Мария", text });
+  const r1 = await say("Хочу записаться завтра на чистку");
+  const c2 = r1.result.conversationId;
+  const time = (await lastOut(A, c2)).text.match(/\d{2}:\d{2}/)![0];
+  await say(time);
+  await say("Нет, не надо");
+  const { data } = await A.sb.from("appointments").select("id").eq("conversation_id", c2);
+  assertEquals(data!.length, 0);
 });
 
 Deno.test("TEST 3 · перенос записи", async () => {
